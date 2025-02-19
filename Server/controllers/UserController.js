@@ -8,7 +8,43 @@ const getAllUsers = (req, res) => {
         .catch(err => res.status(500).json({ error: "Failed to retrieve users", details: err }));
 };
 
+const updateUser = async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const updates = req.body;
+
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            updates,
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedUser) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        res.json(updatedUser);
+    } catch (err) {
+        res.status(500).json({ error: "Failed to update user", details: err.message });
+    }
+};
+
+const deleteUser = async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const deletedUser = await User.findByIdAndDelete(userId);
+
+        if (!deletedUser) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        res.json({ message: "User deleted successfully", user: deletedUser });
+    } catch (err) {
+        res.status(500).json({ error: "Failed to delete user", details: err.message });
+    }
+};
 
 
 
-module.exports = { getAllUsers };
+
+module.exports = { getAllUsers, updateUser, deleteUser };
