@@ -1,7 +1,7 @@
 import api from '../utils/Api';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FiHome, FiUser, FiSettings, FiLogOut, FiEye ,FiList  } from 'react-icons/fi';
+import { FiHome, FiUser, FiSettings, FiLogOut ,FiList  } from 'react-icons/fi';
 
 const Dashboard = () => {
     const navigate = useNavigate();
