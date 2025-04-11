@@ -1100,7 +1100,7 @@ const handleAddExperience = async (e) => {
                                         <p className="text-base-content opacity-75">{user?.email || 'user@example.com'}</p>
 
                                         {currentPosition ? (
-  <span className="  text-sl block opacity-90 font-medium bg-yellow-100 px-2 py-1 rounded-md ">
+  <span className="  text-sl block opacity-90 font-medium  px-2 py-1 rounded-md ">
     {currentPosition.job_title} at {currentPosition.company}
   </span>
 ) : (
@@ -1130,29 +1130,54 @@ const handleAddExperience = async (e) => {
                                         </div>
                                     </div>
                                     {!isEditing && (
-                                        <button
-                                            onClick={() => setIsEditing(true)}
-                                            className="btn btn-primary"
-                                        >
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                className="h-5 w-5 mr-2"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                                stroke="currentColor"
-                                            >
-                                                <path
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    strokeWidth="2"
-                                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                                                />
-                                            </svg>
-                                            Edit Profile
-                                        </button>
-
-                                        
-                                    )}
+      <div className="flex gap-2">
+<button
+  onClick={generateCV}
+  className={`btn  text-[13px] ${theme === 'dark' ? 'btn-primary' : 'btn-outline'}`}
+  style={{
+    width: '146px',
+    height: '49px',
+   
+  }}
+>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className="h-5 w-5 mr-1"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+    />
+  </svg>
+  Generate CV
+</button>
+        <button
+          onClick={() => setIsEditing(true)}
+          className="btn btn-primary"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5 mr-2"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+            />
+          </svg>
+          Edit Profile
+        </button>
+      </div>
+    )}
                                     
 
                                    
@@ -1164,31 +1189,7 @@ const handleAddExperience = async (e) => {
                                 )}
                             </div>
                         </div>
-                        <button
-      onClick={generateCV}
-      className="btn btn-sm"
-      style={{
-        background: 'linear-gradient(to right, #F5A7B7, #C084FC)', // Pink to Purple gradient
-        color: '#FFFFFF',
-        border: 'none',
-      }}
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="h-5 w-5 mr-1"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-        />
-      </svg>
-      Générer le CV
-    </button>
+                     
                         <div className="tabs tabs-boxed bg-base-200 px-6">
                             <button
                                 className={`tab ${activeTab === 'profile' ? 'tab-active' : ''}`}
