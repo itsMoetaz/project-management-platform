@@ -19,7 +19,7 @@ const AdminProfile = () => {
         profile_picture: '',
     });
 
-    // Simplification : utiliser la même logique que Dashboard.jsx et Listusers.jsx
+    // Simplification: using the same logic as Dashboard.jsx and Listusers.jsx
     useEffect(() => {
         const fetchUser = async () => {
             try {
@@ -38,8 +38,8 @@ const AdminProfile = () => {
                     });
                 }
             } catch (error) {
-                console.error("Erreur lors de la récupération des données utilisateur:", error);
-                toast.error('Vous n\'êtes pas authentifié. Redirection vers la page de connexion.', {
+                console.error("Error retrieving user data:", error);
+                toast.error('You are not authenticated. Redirecting to login page.', {
                     style: {
                         background: '#f44336',
                         color: '#fff',
@@ -59,7 +59,7 @@ const AdminProfile = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        toast.loading('Mise à jour du profil...', {
+        toast.loading('Updating profile...', {
             style: {
                 background: '#3498db',
                 color: '#fff',
@@ -88,7 +88,7 @@ const AdminProfile = () => {
                 setIsEditing(false);
 
                 toast.dismiss();
-                toast.success('Profil mis à jour avec succès', {
+                toast.success('Profile updated successfully', {
                     style: {
                         background: '#4CAF50',
                         color: '#fff',
@@ -99,7 +99,7 @@ const AdminProfile = () => {
             }
         } catch (error) {
             console.error('Update error:', error);
-            const errorMessage = error.response?.data?.error || 'Échec de la mise à jour du profil';
+            const errorMessage = error.response?.data?.error || 'Failed to update profile';
 
             toast.dismiss();
             toast.error(errorMessage, {
@@ -111,7 +111,7 @@ const AdminProfile = () => {
                 }
             });
 
-            // Si l'erreur est due à une session expirée, rediriger après avoir montré le message
+            // If the error is due to an expired session, redirect after showing the message
             if (error.response?.status === 401) {
                 setTimeout(() => navigate('/login'), 2000);
             }
@@ -125,25 +125,25 @@ const AdminProfile = () => {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Chargement du profil...
+                Loading profile...
             </div>
         </div>
     );
 
-    // S'il n'y a toujours pas d'utilisateur après chargement, afficher un message d'erreur
+    // If there's still no user after loading, display an error message
     if (!user) {
         return (
             <div className="min-h-screen bg-gradient-to-r from-[#0C0A1F] to-[#3C0B64] flex items-center justify-center">
                 <div className="bg-slate-800/80 p-8 rounded-xl max-w-md text-center">
-                    <h2 className="text-2xl font-bold text-white mb-4">Session non valide</h2>
+                    <h2 className="text-2xl font-bold text-white mb-4">Invalid Session</h2>
                     <p className="text-gray-300 mb-6">
-                        Votre session semble être expirée ou vous n'êtes pas connecté.
+                        Your session appears to be expired or you are not logged in.
                     </p>
                     <button
                         onClick={() => navigate('/login')}
                         className="btn btn-primary"
                     >
-                        Se connecter
+                        Login
                     </button>
                 </div>
             </div>
@@ -157,9 +157,9 @@ const AdminProfile = () => {
                     {/* Left Side - Profile Overview */}
                     <div className="text-center lg:text-left lg:w-1/2">
                         <div className="space-y-6">
-                            <h1 className="text-4xl font-bold gradient-text">Profil Administrateur</h1>
+                            <h1 className="text-4xl font-bold gradient-text">Administrator Profile</h1>
                             <p className="py-4 text-lg text-white">
-                                Gérez vos informations personnelles et vos paramètres de sécurité depuis cette page.
+                                Manage your personal information and security settings from this page.
                             </p>
 
                             {!isEditing && (
@@ -188,29 +188,29 @@ const AdminProfile = () => {
                         <div className="card-body p-8 lg:p-10">
                             <div className="flex justify-between items-center mb-8">
                                 <h2 className="text-2xl font-bold text-white">
-                                    {isEditing ? "Modifier le profil" : "Informations du profil"}
+                                    {isEditing ? "Edit Profile" : "Profile Information"}
                                 </h2>
                                 {!isEditing && (
                                     <button
                                         onClick={() => setIsEditing(true)}
                                         className="btn btn-sm btn-primary gap-2"
                                     >
-                                        <FiEdit /> Modifier
+                                        <FiEdit /> Edit
                                     </button>
                                 )}
                             </div>
 
                             {!isEditing ? (
                                 <div className="space-y-6">
-                                    <InfoField icon={<FiUser />} label="Nom" value={user.name} />
+                                    <InfoField icon={<FiUser />} label="Name" value={user.name} />
                                     <InfoField icon={<FiMail />} label="Email" value={user.email} />
-                                    <InfoField icon={<FiPhone />} label="Téléphone" value={user.phone_number || 'Non renseigné'} />
-                                    <InfoField icon={<FiFileText />} label="Biographie" value={user.bio || 'Aucune biographie'} />
-                                    <InfoField icon={<FiLock />} label="Rôle" value={user.role} isCapitalized={true} />
+                                    <InfoField icon={<FiPhone />} label="Phone" value={user.phone_number || 'Not provided'} />
+                                    <InfoField icon={<FiFileText />} label="Biography" value={user.bio || 'No biography'} />
+                                    <InfoField icon={<FiLock />} label="Role" value={user.role} isCapitalized={true} />
                                     <InfoField
                                         icon={<FiShield />}
-                                        label="Authentification à deux facteurs"
-                                        value={user.two_factor_enabled ? 'Activée' : 'Désactivée'}
+                                        label="Two-factor authentication"
+                                        value={user.two_factor_enabled ? 'Enabled' : 'Disabled'}
                                         isColored={true}
                                         isEnabled={user.two_factor_enabled}
                                     />
@@ -220,7 +220,7 @@ const AdminProfile = () => {
                                     <div className="form-control">
                                         <label className="label">
                                             <span className="label-text text-white flex items-center gap-2">
-                                                <FiUser /> Nom
+                                                <FiUser /> Name
                                             </span>
                                         </label>
                                         <input
@@ -250,7 +250,7 @@ const AdminProfile = () => {
                                     <div className="form-control">
                                         <label className="label">
                                             <span className="label-text text-white flex items-center gap-2">
-                                                <FiPhone /> Téléphone
+                                                <FiPhone /> Phone
                                             </span>
                                         </label>
                                         <input
@@ -264,7 +264,7 @@ const AdminProfile = () => {
                                     <div className="form-control">
                                         <label className="label">
                                             <span className="label-text text-white flex items-center gap-2">
-                                                <FiFileText /> Biographie
+                                                <FiFileText /> Biography
                                             </span>
                                         </label>
                                         <textarea
@@ -278,7 +278,7 @@ const AdminProfile = () => {
                                     <div className="form-control">
                                         <label className="label">
                                             <span className="label-text text-white flex items-center gap-2">
-                                                <FiImage /> URL de l'image de profil
+                                                <FiImage /> Profile Image URL
                                             </span>
                                         </label>
 
@@ -287,7 +287,7 @@ const AdminProfile = () => {
                                     <div className="form-control">
                                         <label className="label">
                                             <span className="label-text text-white flex items-center gap-2">
-                                                <FiLock /> Rôle
+                                                <FiLock /> Role
                                             </span>
                                         </label>
                                         <input
@@ -297,7 +297,7 @@ const AdminProfile = () => {
                                             disabled
                                         />
                                         <label className="label">
-                                            <span className="label-text-alt text-gray-400">Le rôle ne peut pas être modifié</span>
+                                            <span className="label-text-alt text-gray-400">The role cannot be changed</span>
                                         </label>
                                     </div>
 
@@ -307,23 +307,23 @@ const AdminProfile = () => {
                                             onClick={() => setIsEditing(false)}
                                             className="btn btn-outline flex-1 gap-2"
                                         >
-                                            <FiX /> Annuler
+                                            <FiX /> Cancel
                                         </button>
                                         <button
                                             type="submit"
                                             className="btn btn-primary flex-1 gap-2"
                                         >
-                                            <FiSave /> Enregistrer
+                                            <FiSave /> Save
                                         </button>
                                     </div>
                                 </form>
                             )}
 
-                            <div className="divider my-8">Naviguer</div>
+                            <div className="divider my-8">Navigate</div>
 
                             <div className="flex flex-col space-y-3">
                                 <Link to="/dashboard" className="btn btn-outline btn-primary w-full">
-                                    Retour au tableau de bord
+                                    Back to Dashboard
                                 </Link>
                             </div>
                         </div>
@@ -331,7 +331,7 @@ const AdminProfile = () => {
                 </div>
             </div>
 
-            {/* Style pour le texte en dégradé */}
+            {/* Style for gradient text */}
             <style>{`
                 .gradient-text {
                     background: linear-gradient(
@@ -368,7 +368,7 @@ const AdminProfile = () => {
     );
 };
 
-// Composant pour afficher les champs d'information
+// Component to display information fields
 const InfoField = ({ icon, label, value, isCapitalized = false, isColored = false, isEnabled = false }) => {
     return (
         <div className="p-4 bg-base-300 bg-opacity-50 rounded-lg">
