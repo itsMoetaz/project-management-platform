@@ -36,7 +36,7 @@ const UserDetails = () => {
                     role: response.data.role || 'user'
                 });
             } catch (err) {
-                setError("Utilisateur non trouvé");
+                setError("User not found");
             } finally {
                 setLoading(false);
             }
@@ -52,8 +52,8 @@ const UserDetails = () => {
     const handleUpdate = async (e) => {
         e.preventDefault();
     
-        // Au lieu d'envoyer uniquement les champs modifiés, envoyer tous les champs
-        // car la validation côté serveur attend tous les champs obligatoires
+        // Instead of sending only modified fields, send all fields
+        // because server-side validation expects all required fields
         const updatedData = {
             name: formData.name,
             email: formData.email,
@@ -62,12 +62,12 @@ const UserDetails = () => {
             bio: formData.bio || ''
         };
         
-        // N'ajouter le mot de passe que s'il a été fourni
+        // Only add password if it has been provided
         if (formData.password && formData.password.trim() !== '') {
             updatedData.password = formData.password;
         }
         
-        // Log pour déboguer
+        // Debug log
         console.log('Updating user with:', updatedData);
         
         try {
@@ -94,7 +94,7 @@ const UserDetails = () => {
         } catch (error) {
             console.error("Update error:", error);
             console.error("Error details:", error.response?.data || "No detailed error");
-            alert("Erreur lors de la mise à jour: " + (error.response?.data?.message || error.message || "Erreur inconnue"));
+            alert("Error updating user: " + (error.response?.data?.message || error.message || "Unknown error"));
         }
     };
 
@@ -103,8 +103,8 @@ const UserDetails = () => {
             await api.delete(`/api/users/deleteUser/${id}`);
             navigate('/dashboard/listusers');
         } catch (error) {
-            console.error("Erreur lors de la suppression:", error);
-            alert("Erreur lors de la suppression: " + (error.response?.data?.message || "Erreur inconnue"));
+            console.error("Error deleting user:", error);
+            alert("Error deleting user: " + (error.response?.data?.message || "Unknown error"));
         }
     };
 
@@ -113,7 +113,7 @@ const UserDetails = () => {
             await api.get('/api/auth/logout');
             navigate('/login');
         } catch (error) {
-            console.error('Erreur lors de la déconnexion:', error);
+            console.error('Error during logout:', error);
         }
     };
 
@@ -152,7 +152,7 @@ const UserDetails = () => {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Chargement des détails utilisateur...
+                Loading user details...
             </div>
         </div>
     );
@@ -160,13 +160,13 @@ const UserDetails = () => {
     if (error) return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-[#0C0A1F] to-[#3C0B64] p-6">
             <div className="bg-red-900/40 text-red-100 p-6 rounded-xl max-w-md text-center shadow-lg">
-                <h2 className="text-2xl font-bold mb-4">Erreur</h2>
+                <h2 className="text-2xl font-bold mb-4">Error</h2>
                 <p className="mb-6">{error}</p>
                 <Link
                     to="/dashboard/listusers"
                     className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg inline-flex items-center transition-all duration-200"
                 >
-                    <FiArrowLeft className="mr-2" /> Retour à la liste
+                    <FiArrowLeft className="mr-2" /> Back to List
                 </Link>
             </div>
         </div>
@@ -174,16 +174,16 @@ const UserDetails = () => {
 
     return (
         <div className="flex min-h-screen bg-gradient-to-r from-[#0C0A1F] to-[#3C0B64] font-poppins">
-            {/* Notification de succès */}
+            {/* Success notification */}
             <div id="notification" className="fixed top-4 right-4 bg-green-500 text-white p-3 rounded-lg shadow-lg transition-opacity duration-300 opacity-0 z-50 flex items-center">
-                <FiCheck className="mr-2" /> Profil mis à jour avec succès!
+                <FiCheck className="mr-2" /> Profile updated successfully!
             </div>
 
-            {/* Sidebar avec design amélioré */}
+            {/* Sidebar with improved design */}
             <aside className="w-64 bg-slate-900 text-white shadow-md min-h-screen p-5 flex flex-col">
                 <div className="mb-10">
                     <h2 className="text-2xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">ProjectFlow</h2>
-                    <p className="text-xs text-gray-400">Système d'administration</p>
+                    <p className="text-xs text-gray-400">Administration System</p>
                 </div>
 
                 <nav className="flex-grow">
@@ -195,17 +195,17 @@ const UserDetails = () => {
                         </li>
                         <li>
                             <Link to="/dashboard/listusers" className="flex items-center p-3 hover:bg-purple-600 hover:bg-opacity-50 rounded-md transition-all duration-200">
-                                <FiList className="mr-2" /> Liste Utilisateurs
+                                <FiList className="mr-2" /> User List
                             </Link>
                         </li>
                         <li>
                             <Link to="/dashboard/AdminProfile" className="flex items-center p-3 hover:bg-purple-600 hover:bg-opacity-50 rounded-md transition-all duration-200">
-                                <FiUser className="mr-2" /> Profil
+                                <FiUser className="mr-2" /> Profile
                             </Link>
                         </li>
                         <li>
                             <Link to="/settings" className="flex items-center p-3 hover:bg-purple-600 hover:bg-opacity-50 rounded-md transition-all duration-200">
-                                <FiSettings className="mr-2" /> Paramètres
+                                <FiSettings className="mr-2" /> Settings
                             </Link>
                         </li>
                     </ul>
@@ -216,12 +216,12 @@ const UserDetails = () => {
                         onClick={handleLogout}
                         className="flex w-full items-center p-3 text-red-400 hover:bg-red-900 hover:bg-opacity-30 rounded-md transition-all duration-200"
                     >
-                        <FiLogOut className="mr-2" /> Déconnexion
+                        <FiLogOut className="mr-2" /> Logout
                     </button>
                 </div>
             </aside>
 
-            {/* Main Content avec design amélioré */}
+            {/* Main Content with improved design */}
             <div className="flex-1 p-6 overflow-y-auto">
                 <header className="mb-8">
                     <div className="flex items-center mb-2">
@@ -229,13 +229,13 @@ const UserDetails = () => {
                             to="/dashboard/listusers"
                             className="text-gray-400 hover:text-white flex items-center mr-4 transition-colors"
                         >
-                            <FiArrowLeft className="mr-2" /> Retour
+                            <FiArrowLeft className="mr-2" /> Back
                         </Link>
                         <h1 className="text-3xl font-bold text-white bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
-                            Profil Utilisateur
+                            User Profile
                         </h1>
                     </div>
-                    <p className="text-gray-400">Détails et gestion du compte {user.name}</p>
+                    <p className="text-gray-400">Account details and management for {user.name}</p>
                 </header>
 
                 {/* User Actions Bar */}
@@ -263,7 +263,7 @@ const UserDetails = () => {
                             <h2 className="text-xl font-bold text-white flex items-center">
                                 {user.name}
                                 {user.isVerified && (
-                                    <span className="ml-2 bg-green-900/50 text-green-300 text-xs px-2 py-1 rounded-full">Vérifié</span>
+                                    <span className="ml-2 bg-green-900/50 text-green-300 text-xs px-2 py-1 rounded-full">Verified</span>
                                 )}
                             </h2>
                             <p className="text-gray-400">{user.email}</p>
@@ -275,13 +275,13 @@ const UserDetails = () => {
                             onClick={() => setShowForm(!showForm)}
                             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 py-2 rounded-lg flex items-center shadow-md hover:shadow-purple-500/20 transition-all duration-200"
                         >
-                            <FiEdit className="mr-2"/> Modifier
+                            <FiEdit className="mr-2"/> Edit
                         </button>
                         <button
                             onClick={() => setShowDeleteConfirm(true)}
                             className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center shadow-md transition-all duration-200"
                         >
-                            <FiTrash2 className="mr-2"/> Supprimer
+                            <FiTrash2 className="mr-2"/> Delete
                         </button>
                     </div>
                 </div>
@@ -295,7 +295,7 @@ const UserDetails = () => {
                                 'text-gray-400 hover:text-white'}`}
                             onClick={() => setActiveTab('profile')}
                         >
-                            Profil
+                            Profile
                         </button>
                         <button
                             className={`px-6 py-3 font-medium ${activeTab === 'security' ?
@@ -303,7 +303,7 @@ const UserDetails = () => {
                                 'text-gray-400 hover:text-white'}`}
                             onClick={() => setActiveTab('security')}
                         >
-                            Sécurité
+                            Security
                         </button>
                         <button
                             className={`px-6 py-3 font-medium ${activeTab === 'activity' ?
@@ -311,7 +311,7 @@ const UserDetails = () => {
                                 'text-gray-400 hover:text-white'}`}
                             onClick={() => setActiveTab('activity')}
                         >
-                            Activité
+                            Activity
                         </button>
                     </div>
                 </div>
@@ -331,11 +331,11 @@ const UserDetails = () => {
                                 <div
                                     className="bg-slate-800/60 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-gray-700 hover:shadow-purple-900/10 transition-all duration-300">
                                     <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                                        <FiUser className="mr-2 text-purple-400"/> Informations personnelles
+                                        <FiUser className="mr-2 text-purple-400"/> Personal Information
                                     </h3>
                                     <div className="space-y-4">
                                         <div>
-                                            <p className="text-xs text-gray-400">Nom complet</p>
+                                            <p className="text-xs text-gray-400">Full Name</p>
                                             <p className="font-medium text-white">{user.name}</p>
                                         </div>
                                         <div>
@@ -344,21 +344,21 @@ const UserDetails = () => {
                                                 <p className="font-medium text-white mr-2">{user.email}</p>
                                                 {user.isVerified ? (
                                                     <span
-                                                        className="bg-green-900/50 text-green-300 text-xs px-2 py-0.5 rounded">Vérifié</span>
+                                                        className="bg-green-900/50 text-green-300 text-xs px-2 py-0.5 rounded">Verified</span>
                                                 ) : (
                                                     <span
-                                                        className="bg-red-900/50 text-red-300 text-xs px-2 py-0.5 rounded">Non vérifié</span>
+                                                        className="bg-red-900/50 text-red-300 text-xs px-2 py-0.5 rounded">Not verified</span>
                                                 )}
                                             </div>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-gray-400">Téléphone</p>
-                                            <p className="font-medium text-white">{user.phone_number || "Non renseigné"}</p>
+                                            <p className="text-xs text-gray-400">Phone</p>
+                                            <p className="font-medium text-white">{user.phone_number || "Not provided"}</p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-gray-400">Biographie</p>
+                                            <p className="text-xs text-gray-400">Biography</p>
                                             <p className="font-medium text-white bg-slate-700/50 p-3 rounded-lg">
-                                                {user.bio || "Aucune biographie définie"}
+                                                {user.bio || "No biography defined"}
                                             </p>
                                         </div>
                                     </div>
@@ -368,39 +368,39 @@ const UserDetails = () => {
                                 <div
                                     className="bg-slate-800/60 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-gray-700 hover:shadow-purple-900/10 transition-all duration-300">
                                     <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                                        <FiInfo className="mr-2 text-blue-400"/> Rôle et statut
+                                        <FiInfo className="mr-2 text-blue-400"/> Role and Status
                                     </h3>
                                     <div className="space-y-4">
                                         <div>
-                                            <p className="text-xs text-gray-400">Rôle</p>
+                                            <p className="text-xs text-gray-400">Role</p>
                                             <div className="font-medium">
                                                 {user.role === 'admin' ?
                                                     <span
-                                                        className="bg-purple-900/50 text-purple-300 px-2 py-1 rounded-lg">Administrateur</span> :
+                                                        className="bg-purple-900/50 text-purple-300 px-2 py-1 rounded-lg">Administrator</span> :
                                                     <span
-                                                        className="bg-blue-900/50 text-blue-300 px-2 py-1 rounded-lg">Utilisateur</span>
+                                                        className="bg-blue-900/50 text-blue-300 px-2 py-1 rounded-lg">User</span>
                                                 }
                                             </div>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-gray-400">Statut du compte</p>
+                                            <p className="text-xs text-gray-400">Account Status</p>
                                             <div className="font-medium">
                                                 {user.isActive ?
                                                     <span
-                                                        className="bg-green-900/50 text-green-300 px-2 py-1 rounded-lg">Actif</span> :
+                                                        className="bg-green-900/50 text-green-300 px-2 py-1 rounded-lg">Active</span> :
                                                     <span
-                                                        className="bg-red-900/50 text-red-300 px-2 py-1 rounded-lg">Inactif</span>
+                                                        className="bg-red-900/50 text-red-300 px-2 py-1 rounded-lg">Inactive</span>
                                                 }
                                             </div>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-gray-400">Date de création</p>
+                                            <p className="text-xs text-gray-400">Creation Date</p>
                                             <p className="font-medium text-white">
-                                                {user.createdAt ? new Date(user.createdAt).toLocaleDateString('fr-FR', {
+                                                {user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', {
                                                     day: 'numeric',
                                                     month: 'long',
                                                     year: 'numeric'
-                                                }) : "Non disponible"}
+                                                }) : "Not available"}
                                             </p>
                                         </div>
                                     </div>
@@ -410,7 +410,7 @@ const UserDetails = () => {
                                 <div
                                     className="bg-slate-800/60 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-gray-700 hover:shadow-purple-900/10 transition-all duration-300">
                                     <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                                        <FiMail className="mr-2 text-amber-400"/> Espaces de travail
+                                        <FiMail className="mr-2 text-amber-400"/> Workspaces
                                     </h3>
                                     <div>
                                         {user.workspaces && user.workspaces.length > 0 ? (
@@ -424,7 +424,7 @@ const UserDetails = () => {
                                             </ul>
                                         ) : (
                                             <div className="bg-slate-700/30 p-4 rounded-lg text-center">
-                                                <p className="text-gray-400">Aucun espace de travail</p>
+                                                <p className="text-gray-400">No workspaces</p>
                                             </div>
                                         )}
                                     </div>
@@ -439,30 +439,30 @@ const UserDetails = () => {
                                 <div
                                     className="bg-slate-800/60 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-gray-700 hover:shadow-purple-900/10 transition-all duration-300">
                                     <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                                        <FiShield className="mr-2 text-purple-400"/> Authentification
+                                        <FiShield className="mr-2 text-purple-400"/> Authentication
                                     </h3>
                                     <div className="space-y-4">
                                         <div>
-                                            <p className="text-xs text-gray-400">Méthode d'authentification</p>
+                                            <p className="text-xs text-gray-400">Authentication Method</p>
                                             <p className="font-medium text-white">
                                                 {user.authentication_method || "Standard"}
                                             </p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-gray-400">Authentification à deux facteurs</p>
+                                            <p className="text-xs text-gray-400">Two-Factor Authentication</p>
                                             <p className="font-medium">
                                                 {user.two_factor_enabled ?
-                                                    <span className="text-green-400">Activée</span> :
-                                                    <span className="text-yellow-400">Désactivée</span>
+                                                    <span className="text-green-400">Enabled</span> :
+                                                    <span className="text-yellow-400">Disabled</span>
                                                 }
                                             </p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-gray-400">Dernière modification du mot de passe</p>
+                                            <p className="text-xs text-gray-400">Last Password Change</p>
                                             <p className="font-medium text-white">
                                                 {user.passwordChangedAt ?
                                                     new Date(user.passwordChangedAt).toLocaleString() :
-                                                    "Jamais"}
+                                                    "Never"}
                                             </p>
                                         </div>
                                     </div>
@@ -471,28 +471,28 @@ const UserDetails = () => {
                                 {/* Session Info */}
                                 <div className="bg-slate-800/60 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-gray-700 hover:shadow-purple-900/10 transition-all duration-300">
                                     <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                                        <FiClock className="mr-2 text-blue-400" /> Informations de session
+                                        <FiClock className="mr-2 text-blue-400" /> Session Information
                                     </h3>
                                     <div className="space-y-4">
                                         <div>
-                                            <p className="text-xs text-gray-400">Dernière connexion</p>
+                                            <p className="text-xs text-gray-400">Last Login</p>
                                             <p className="font-medium text-white">
                                                 {user.last_login ?
                                                     new Date(user.last_login).toLocaleString() :
-                                                    "Jamais"}
+                                                    "Never"}
                                             </p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-gray-400">Dernière activité</p>
+                                            <p className="text-xs text-gray-400">Last Activity</p>
                                             <p className="font-medium text-white">
                                                 {user.lastActive ?
                                                     new Date(user.lastActive).toLocaleString() :
-                                                    "Aucune activité enregistrée"}
+                                                    "No activity recorded"}
                                             </p>
                                         </div>
                                         <div>
                                             <button className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg text-sm transition-colors mt-2">
-                                                <FiLock className="inline mr-2"/> Réinitialiser le mot de passe
+                                                <FiLock className="inline mr-2"/> Reset Password
                                             </button>
                                         </div>
                                     </div>
@@ -504,38 +504,38 @@ const UserDetails = () => {
                             <div className="grid grid-cols-1 gap-6">
                                 <div className="bg-slate-800/60 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-gray-700 hover:shadow-purple-900/10 transition-all duration-300">
                                     <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                                        <FiCalendar className="mr-2 text-amber-400" /> Activité récente
+                                        <FiCalendar className="mr-2 text-amber-400" /> Recent Activity
                                     </h3>
                                     <div className="space-y-4">
                                         <div className="flex flex-col space-y-4">
-                                            {/* Ce serait idéal d'avoir de vraies données d'activité ici */}
+                                            {/* Ideally we would have real activity data here */}
                                             <div className="p-3 bg-slate-700/50 rounded-lg">
                                                 <div className="flex justify-between">
-                                                    <span className="text-white font-medium">Connexion réussie</span>
+                                                    <span className="text-white font-medium">Successful Login</span>
                                                     <span className="text-gray-400 text-sm">{user.last_login ? new Date(user.last_login).toLocaleString() : "N/A"}</span>
                                                 </div>
-                                                <p className="text-sm text-gray-400 mt-1">L'utilisateur s'est connecté avec succès au système</p>
+                                                <p className="text-sm text-gray-400 mt-1">User successfully logged in to the system</p>
                                             </div>
 
                                             <div className="p-3 bg-slate-700/50 rounded-lg">
                                                 <div className="flex justify-between">
-                                                    <span className="text-white font-medium">Modification du profil</span>
+                                                    <span className="text-white font-medium">Profile Update</span>
                                                     <span className="text-gray-400 text-sm">{user.updatedAt ? new Date(user.updatedAt).toLocaleString() : "N/A"}</span>
                                                 </div>
-                                                <p className="text-sm text-gray-400 mt-1">Des informations du profil ont été mises à jour</p>
+                                                <p className="text-sm text-gray-400 mt-1">Profile information was updated</p>
                                             </div>
 
                                             <div className="p-3 bg-slate-700/50 rounded-lg">
                                                 <div className="flex justify-between">
-                                                    <span className="text-white font-medium">Création du compte</span>
+                                                    <span className="text-white font-medium">Account Creation</span>
                                                     <span className="text-gray-400 text-sm">{user.createdAt ? new Date(user.createdAt).toLocaleString() : "N/A"}</span>
                                                 </div>
-                                                <p className="text-sm text-gray-400 mt-1">Le compte utilisateur a été créé</p>
+                                                <p className="text-sm text-gray-400 mt-1">User account was created</p>
                                             </div>
                                         </div>
                                         <div className="text-center mt-4">
                                             <button className="text-purple-400 hover:text-purple-300 text-sm">
-                                                Voir plus d'activités →
+                                                View more activities →
                                             </button>
                                         </div>
                                     </div>
@@ -559,7 +559,7 @@ const UserDetails = () => {
                                 <div className="p-6 border-b border-gray-700">
                                     <div className="flex justify-between items-center">
                                         <h2 className="text-xl font-semibold text-white flex items-center">
-                                            <FiEdit className="mr-2 text-purple-400"/> Modifier l'utilisateur
+                                            <FiEdit className="mr-2 text-purple-400"/> Edit User
                                         </h2>
                                         <button
                                             onClick={() => setShowForm(false)}
@@ -573,7 +573,7 @@ const UserDetails = () => {
                                     <form onSubmit={handleUpdate}>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div>
-                                                <label className="block mb-2 text-sm font-medium text-gray-300">Nom</label>
+                                                <label className="block mb-2 text-sm font-medium text-gray-300">Name</label>
                                                 <input
                                                     type="text"
                                                     name="name"
@@ -595,7 +595,7 @@ const UserDetails = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block mb-2 text-sm font-medium text-gray-300">Téléphone</label>
+                                                <label className="block mb-2 text-sm font-medium text-gray-300">Phone</label>
                                                 <input
                                                     type="text"
                                                     name="phone_number"
@@ -605,19 +605,19 @@ const UserDetails = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block mb-2 text-sm font-medium text-gray-300">Rôle</label>
+                                                <label className="block mb-2 text-sm font-medium text-gray-300">Role</label>
                                                 <select
                                                     name="role"
                                                     value={formData.role}
                                                     onChange={handleInputChange}
                                                     className="w-full p-2.5 bg-slate-700 text-white rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                                                 >
-                                                    <option value="user">Utilisateur</option>
-                                                    <option value="admin">Administrateur</option>
+                                                    <option value="user">User</option>
+                                                    <option value="admin">Administrator</option>
                                                 </select>
                                             </div>
                                             <div className="md:col-span-2">
-                                                <label className="block mb-2 text-sm font-medium text-gray-300">Biographie</label>
+                                                <label className="block mb-2 text-sm font-medium text-gray-300">Biography</label>
                                                 <textarea
                                                     name="bio"
                                                     value={formData.bio}
@@ -628,7 +628,7 @@ const UserDetails = () => {
                                             </div>
                                             <div>
                                                 <label className="block mb-2 text-sm font-medium text-gray-300">
-                                                    Nouveau mot de passe
+                                                    New Password
                                                 </label>
                                                 <input
                                                     type="password"
@@ -636,10 +636,10 @@ const UserDetails = () => {
                                                     value={formData.password}
                                                     onChange={handleInputChange}
                                                     className="w-full p-2.5 bg-slate-700 text-white rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                                                    placeholder="Laisser vide pour conserver le mot de passe actuel"
+                                                    placeholder="Leave empty to keep current password"
                                                 />
                                                 <p className="mt-1 text-xs text-gray-400">
-                                                    Pour des raisons de sécurité, nous ne pouvons pas afficher le mot de passe existant.
+                                                    For security reasons, we cannot display the existing password.
                                                 </p>
                                             </div>
                                         </div>
@@ -649,13 +649,13 @@ const UserDetails = () => {
                                                 onClick={() => setShowForm(false)}
                                                 className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
                                             >
-                                                Annuler
+                                                Cancel
                                             </button>
                                             <button
                                                 type="submit"
                                                 className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg transition-colors"
                                             >
-                                                Enregistrer
+                                                Save
                                             </button>
                                         </div>
                                     </form>
@@ -680,22 +680,22 @@ const UserDetails = () => {
                                 exit={{ scale: 0.9, opacity: 0 }}
                                 className="bg-slate-800 rounded-xl shadow-xl max-w-md w-full p-6"
                             >
-                                <h3 className="text-xl font-bold text-white mb-4">Confirmer la suppression</h3>
+                                <h3 className="text-xl font-bold text-white mb-4">Confirm Deletion</h3>
                                 <p className="text-gray-300 mb-6">
-                                    Êtes-vous sûr de vouloir supprimer l'utilisateur <span className="font-semibold text-white">{user.name}</span> ? Cette action est irréversible.
+                                    Are you sure you want to delete user <span className="font-semibold text-white">{user.name}</span>? This action cannot be undone.
                                 </p>
                                 <div className="flex justify-end space-x-3">
                                     <button
                                         onClick={() => setShowDeleteConfirm(false)}
                                         className="px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors"
                                     >
-                                        Annuler
+                                        Cancel
                                     </button>
                                     <button
                                         onClick={handleDeleteUser}
                                         className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                                     >
-                                        Supprimer
+                                        Delete
                                     </button>
                                 </div>
                             </motion.div>

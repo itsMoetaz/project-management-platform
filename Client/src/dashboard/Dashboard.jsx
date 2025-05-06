@@ -59,7 +59,74 @@ const Dashboard = () => {
     const [userRoleDistribution, setUserRoleDistribution] = useState([]);
     const [notificationTypes, setNotificationTypes] = useState([]);
 
-    // Couleurs personnalisées pour une meilleure expérience visuelle
+    // Function to predict future registrations
+    const predictFutureRegistrations = (data, daysToPredict = 7) => {
+        // Calculate average registrations from the last 7 days
+        const average = data.reduce((acc, day) => acc + day.registrations, 0) / data.length;
+
+        const futureDates = [];
+        const today = new Date(data[data.length - 1].date);
+
+        for (let i = 1; i <= daysToPredict; i++) {
+            const futureDate = new Date(today);
+            futureDate.setDate(today.getDate() + i);
+            const dateString = futureDate.toISOString().split('T')[0];
+
+            futureDates.push({
+                date: dateString,
+                registrations: Math.round(average) // you can make this more intelligent later
+            });
+        }
+
+        return futureDates;
+    };
+
+    // Function to predict future monthly registrations
+    const predictFutureMonthlyRegistrations = (data, monthsToPredict = 6) => {
+        // Step 1: Group data by month (YYYY-MM)
+        const monthlySums = {};
+        data.forEach(item => {
+            const month = item.date.substring(0, 7); // 'YYYY-MM'
+            if (!monthlySums[month]) {
+                monthlySums[month] = 0;
+            }
+            monthlySums[month] += item.registrations;
+        });
+
+        const monthlyData = Object.entries(monthlySums).map(([month, registrations]) => ({
+            month,
+            registrations,
+        }));
+
+        // Step 2: Calculate monthly average
+        const average = monthlyData.reduce((acc, m) => acc + m.registrations, 0) / monthlyData.length;
+
+        // Step 3: Generate future months
+        const futureMonths = [];
+        const [lastYear, lastMonth] = monthlyData[monthlyData.length - 1].month.split('-').map(Number);
+
+        let currentYear = lastYear;
+        let currentMonth = lastMonth;
+
+        for (let i = 1; i <= monthsToPredict; i++) {
+            currentMonth += 1;
+            if (currentMonth > 12) {
+                currentMonth = 1;
+                currentYear += 1;
+            }
+
+            const formattedMonth = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
+
+            futureMonths.push({
+                month: formattedMonth,
+                registrations: Math.round(average), // simple prediction
+            });
+        }
+
+        return futureMonths;
+    };
+
+    // Custom colors for better visual experience
     const chartColors = {
         primary: ['rgba(101, 116, 205, 0.8)', 'rgba(101, 116, 205, 0.6)', 'rgba(101, 116, 205, 0.4)'],
         secondary: ['rgba(229, 62, 62, 0.8)', 'rgba(229, 62, 62, 0.6)', 'rgba(229, 62, 62, 0.4)'],
@@ -70,7 +137,7 @@ const Dashboard = () => {
         status: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40']
     };
 
-    // Options globales des graphiques
+    // Global chart options
     const chartOptions = {
         responsive: true,
         maintainAspectRatio: false,
@@ -161,7 +228,7 @@ const Dashboard = () => {
             const response = await api.get('/api/dashboard/task-status-distribution');
             setTaskStatusDistribution(response.data);
 
-            // Calculer des statistiques globales sur les tâches
+            // Calculate global task statistics
             const totalTasks = response.data.reduce((sum, item) => sum + item.count, 0);
             const completedTasks = response.data.find(item => item.name === 'DONE')?.count || 0;
             const pendingTasks = totalTasks - completedTasks;
@@ -196,19 +263,19 @@ const Dashboard = () => {
 
     const fetchWorkspaceProgress = async () => {
         try {
-            // Utilisation de project-progress au lieu de workspace-progress qui n'existe pas
+            // Using project-progress instead of workspace-progress which does not exist
             const response = await api.get('/api/dashboard/project-progress');
             
-            // Adaptation des données reçues au format attendu par le graphique
+            // Adapt received data to the expected format for the chart
             const formattedData = response.data.map(project => ({
-                workspaceName: project.projectName || "Projet sans nom",
+                workspaceName: project.projectName || "Unnamed Project",
                 completedTasks: project.completedTasks || 0
             }));
             
             setWorkspaceProgress(formattedData);
         } catch (error) {
             console.error('Error fetching workspace progress:', error);
-            // En cas d'erreur, définir des données vides pour éviter les erreurs de rendu
+            // In case of error, set empty data to avoid rendering errors
             setWorkspaceProgress([]);
         }
     };
@@ -291,7 +358,7 @@ const Dashboard = () => {
             setRecentLogins(response.data);
         } catch (error) {
             console.error('Error fetching recent logins:', error);
-            // Données d'exemple en cas d'erreur
+            // Example data in case of error
             const today = new Date();
             setRecentLogins([
                 { name: "Thomas Dubois", email: "thomas.d@example.com", lastLogin: new Date(today - 1000 * 60 * 30).toISOString(), ip: "192.168.1.45" },
@@ -308,7 +375,7 @@ const Dashboard = () => {
             setRegistrationTrend(response.data);
         } catch (error) {
             console.error('Error fetching registration trend:', error);
-            // Données d'exemple en cas d'erreur
+            // Example data in case of error
             const today = new Date();
             const trendData = [];
             
@@ -319,7 +386,7 @@ const Dashboard = () => {
                 
                 trendData.push({
                     date: dateString,
-                    registrations: Math.floor(Math.random() * 5) + 1, // Entre 1 et 5 inscriptions par jour
+                    registrations: Math.floor(Math.random() * 5) + 1, // Between 1 and 5 registrations per day
                 });
             }
             
@@ -333,11 +400,11 @@ const Dashboard = () => {
             setUserRoleDistribution(response.data);
         } catch (error) {
             console.error('Error fetching user role distribution:', error);
-            // Données d'exemple en cas d'erreur
+            // Example data in case of error
             setUserRoleDistribution([
-                { role: "Administrateur", count: 3 },
-                { role: "Chef de projet", count: 12 },
-                { role: "Développeur", count: 18 },
+                { role: "Administrator", count: 3 },
+                { role: "Project Manager", count: 12 },
+                { role: "Developer", count: 18 },
                 { role: "Designer", count: 7 }
             ]);
         }
@@ -349,11 +416,11 @@ const Dashboard = () => {
             setNotificationTypes(response.data);
         } catch (error) {
             console.error('Error fetching notification types:', error);
-            // Données d'exemple en cas d'erreur
+            // Example data in case of error
             setNotificationTypes([
-                { type: "Système", count: 45, color: "#FF6384" },
-                { type: "Tâche", count: 32, color: "#36A2EB" },
-                { type: "Projet", count: 28, color: "#FFCE56" },
+                { type: "System", count: 45, color: "#FF6384" },
+                { type: "Task", count: 32, color: "#36A2EB" },
+                { type: "Project", count: 28, color: "#FFCE56" },
                 { type: "Mention", count: 19, color: "#4BC0C0" }
             ]);
         }
@@ -402,7 +469,7 @@ const Dashboard = () => {
         </div>
     );
 
-    // Configuration des graphiques avec nos couleurs et options personnalisées
+    // Chart configurations with our custom colors and options
     const taskStatusChart = {
         labels: taskStatusDistribution.map(status => status.name),
         datasets: [{
@@ -441,7 +508,7 @@ const Dashboard = () => {
     const workspaceProgressChart = {
         labels: workspaceProgress.map(workspace => workspace.workspaceName),
         datasets: [{
-            label: 'Tâches complétées par espace de travail',
+            label: 'Tâches terminées par espace de travail',
             data: workspaceProgress.map(workspace => workspace.completedTasks),
             backgroundColor: chartColors.success[0],
             borderColor: chartColors.success[0],
@@ -469,8 +536,6 @@ const Dashboard = () => {
         ],
     };
 
-
-
     const taskTrendOverTimeChart = {
         labels: taskTrendOverTime.map(item => item.date),
         datasets: [
@@ -495,7 +560,7 @@ const Dashboard = () => {
         ],
     };
 
-    // Configuration des graphiques pour les nouvelles données
+    // Chart configurations for new data
     const teamSkillsChart = {
         labels: teamSkillsDistribution.map(skill => skill.skillName),
         datasets: [{
@@ -543,7 +608,7 @@ const Dashboard = () => {
     const teamExperienceChart = {
         labels: teamExperienceStats.experienceLevels?.map(item => item.level) || [],
         datasets: [{
-            label: 'Distribution de l\'expérience',
+            label: 'Répartition de l\'expérience',
             data: teamExperienceStats.experienceLevels?.map(item => item.count) || [],
             backgroundColor: chartColors.accent,
             borderColor: chartColors.accent.map(color => color.replace('0.8', '1')),
@@ -551,7 +616,7 @@ const Dashboard = () => {
         }],
     };
 
-    // Configuration des nouveaux graphiques
+    // New chart configurations
     const userRoleChart = {
         labels: userRoleDistribution.map(item => item.role),
         datasets: [{
@@ -587,25 +652,110 @@ const Dashboard = () => {
         }],
     };
 
+    const futureRegistrationChart = {
+        labels: predictFutureRegistrations(registrationTrend).map(item => item.date),
+        datasets: [{
+            label: 'Prévisions des inscriptions',
+            data: predictFutureRegistrations(registrationTrend).map(item => item.registrations),
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            borderColor: chartColors.secondary[0],
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4,
+        }],
+    };
+
+    // Registration prediction chart configuration
+    const predictedData = predictFutureRegistrations(registrationTrend);
+    const allTrendData = [...registrationTrend, ...predictedData];
+
+    const registrationPredictionChart = {
+        labels: allTrendData.map(item => item.date),
+        datasets: [
+            {
+                label: 'Inscriptions réelles',
+                data: registrationTrend.map(item => item.registrations),
+                borderColor: chartColors.primary[0],
+                backgroundColor: 'rgba(94, 114, 228, 0.2)',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.4,
+            },
+            {
+                label: 'Prévisions',
+                data: [...Array(registrationTrend.length).fill(null), ...predictedData.map(item => item.registrations)],
+                borderColor: 'rgba(0, 230, 118, 1)',
+                borderDash: [5, 5],
+                backgroundColor: 'rgba(0, 230, 118, 0.2)',
+                fill: false,
+                tension: 0.4,
+            }
+        ],
+    };
+
+    // Monthly registration prediction chart configuration
+    const monthlyData = predictFutureMonthlyRegistrations(registrationTrend);
+    
+    // Group current data by month
+    const currentMonthlyData = {};
+    registrationTrend.forEach(item => {
+        const month = item.date.substring(0, 7); // 'YYYY-MM'
+        if (!currentMonthlyData[month]) {
+            currentMonthlyData[month] = 0;
+        }
+        currentMonthlyData[month] += item.registrations;
+    });
+    
+    const formattedCurrentMonthlyData = Object.entries(currentMonthlyData).map(([month, registrations]) => ({
+        month,
+        registrations,
+    }));
+    
+    const allMonthlyData = [...formattedCurrentMonthlyData, ...monthlyData];
+    
+    const monthlyRegistrationPredictionChart = {
+        labels: allMonthlyData.map(item => item.month),
+        datasets: [
+            {
+                label: 'Inscriptions mensuelles réelles',
+                data: formattedCurrentMonthlyData.map(item => item.registrations),
+                borderColor: chartColors.primary[0],
+                backgroundColor: 'rgba(94, 114, 228, 0.2)',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.4,
+            },
+            {
+                label: 'Prévisions mensuelles',
+                data: [...Array(formattedCurrentMonthlyData.length).fill(null), ...monthlyData.map(item => item.registrations)],
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderDash: [5, 5],
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                fill: false,
+                tension: 0.4,
+            }
+        ],
+    };
+
     return (
         <div className="flex min-h-screen bg-gradient-to-r from-[#0C0A1F] to-[#3C0B64] font-poppins">
-            {/* Sidebar avec design amélioré */}
+            {/* Sidebar with improved design */}
             <aside className="w-64 bg-slate-900 text-white shadow-md min-h-screen p-5 flex flex-col">
                 <div className="mb-10">
                     <h2 className="text-2xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">ProjectFlow</h2>
-                    <p className="text-xs text-gray-400">Tableau de bord administrateur</p>
+                    <p className="text-xs text-gray-400">Tableau de Bord Admin</p>
                 </div>
 
                 <nav className="flex-grow">
                     <ul className="space-y-2">
                         <li>
                             <Link to="/dashboard" className="flex items-center p-3 bg-purple-600 text-white rounded-md shadow-md">
-                                <FiHome className="mr-2" /> Dashboard
+                                <FiHome className="mr-2" /> Tableau de Bord
                             </Link>
                         </li>
                         <li>
                             <Link to="/dashboard/listusers" className="flex items-center p-3 hover:bg-purple-600 hover:bg-opacity-50 rounded-md transition-all duration-200">
-                                <FiList className="mr-2" /> Liste Utilisateurs
+                                <FiList className="mr-2" /> Liste des Utilisateurs
                             </Link>
                         </li>
                         <li>
@@ -636,7 +786,7 @@ const Dashboard = () => {
                 <header className="mb-8">
                     <div className="flex justify-between items-center">
                         <h1 className="text-3xl font-bold text-white bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
-                            Tableau de Bord Administration
+                            Tableau de Bord d'Administration
                         </h1>
                         <div className="flex items-center space-x-4">
                             <div className="bg-slate-800 p-2 rounded-full">
@@ -648,10 +798,10 @@ const Dashboard = () => {
                             </div>
                         </div>
                     </div>
-                    <p className="text-gray-400 mt-1">Vue d'ensemble des projets et des utilisateurs</p>
+                    <p className="text-gray-400 mt-1">Vue d'ensemble des projets et utilisateurs</p>
                 </header>
 
-                {/* Stats Cards - Design moderne avec icônes */}
+                {/* Stats Cards - Modern design with icons */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                     <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl shadow-lg p-6 border border-gray-700 hover:shadow-purple-900/20 hover:border-purple-700/50 transition-all duration-300">
                         <div className="flex items-center justify-between">
@@ -668,7 +818,7 @@ const Dashboard = () => {
                     <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl shadow-lg p-6 border border-gray-700 hover:shadow-blue-900/20 hover:border-blue-700/50 transition-all duration-300">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-gray-400 text-sm">Workspaces</p>
+                                <p className="text-gray-400 text-sm">Espaces de Travail</p>
                                 <h3 className="text-3xl font-bold text-white">{workspaceCount}</h3>
                                 <p className="text-green-500 text-xs mt-1">+ 8.2% ce mois</p>
                             </div>
@@ -706,6 +856,8 @@ const Dashboard = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Graphs Section - Improved design with uniform, more modern cards */}
 
                 {/* Graphs Section - Design amélioré avec des cartes uniformes et plus modernes */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -1066,6 +1218,57 @@ const Dashboard = () => {
                                     plugins: {
                                         ...chartOptions.plugins,
                                         title: { ...chartOptions.plugins.title, text: 'Nouvelles inscriptions (7 derniers jours)' }
+                                    }
+                                }}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Prévisions des inscriptions */}
+                    <div className="bg-slate-800/60 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-gray-700 hover:shadow-red-900/10 transition-all duration-300 mb-8">
+                        <h3 className="text-xl font-semibold text-white mb-4">Prévisions des inscriptions</h3>
+                        <div className="h-64">
+                            <Line
+                                data={futureRegistrationChart}
+                                options={{
+                                    ...chartOptions,
+                                    plugins: {
+                                        ...chartOptions.plugins,
+                                        title: { ...chartOptions.plugins.title, text: 'Prévisions des inscriptions (7 prochains jours)' }
+                                    }
+                                }}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Graphique combiné des inscriptions réelles et prévisions */}
+                    <div className="bg-slate-800/60 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-gray-700 hover:shadow-green-900/10 transition-all duration-300 mb-8">
+                        <h3 className="text-xl font-semibold text-white mb-4">Inscriptions réelles et prévisions</h3>
+                        <div className="h-64">
+                            <Line
+                                data={registrationPredictionChart}
+                                options={{
+                                    ...chartOptions,
+                                    plugins: {
+                                        ...chartOptions.plugins,
+                                        title: { ...chartOptions.plugins.title, text: 'Inscriptions réelles et prévisions combinées' }
+                                    }
+                                }}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Prévisions des inscriptions mensuelles */}
+                    <div className="bg-slate-800/60 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-gray-700 hover:shadow-blue-900/10 transition-all duration-300 mb-8">
+                        <h3 className="text-xl font-semibold text-white mb-4">Prévisions des inscriptions mensuelles</h3>
+                        <div className="h-64">
+                            <Line
+                                data={monthlyRegistrationPredictionChart}
+                                options={{
+                                    ...chartOptions,
+                                    plugins: {
+                                        ...chartOptions.plugins,
+                                        title: { ...chartOptions.plugins.title, text: 'Inscriptions mensuelles réelles et prévisions' }
                                     }
                                 }}
                             />
