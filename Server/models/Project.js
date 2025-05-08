@@ -32,7 +32,10 @@ const projectSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Task',
     }],
-    
+    deadline_notification_sent: {
+      type: Boolean,
+      default: false
+  },
     // GitHub specific fields
     github_repo_id: {
       type: String,
