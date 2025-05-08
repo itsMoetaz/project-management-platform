@@ -9,6 +9,7 @@ import TaskModal from '../../components/project/TaskModal';
 import ResourceModal from '../../components/project/ResourceModal';
 import ResourceList from '../../components/project/ResourceList';
 import api from '../../utils/Api';
+import ProjectHistory from '../../components/project/ProjectHistory';
 
 const ProjectDetails = () => {
   const { id, projectId } = useParams();
@@ -58,7 +59,18 @@ const ProjectDetails = () => {
 
     fetchProjectDetails();
   }, [id, projectId]);
-
+  const createHistoryEntry = async (action, taskId, description) => {
+    try {
+      await api.post(`/api/projects/${projectId}/history`, {
+        action,
+        task: taskId,
+        description
+      });
+    } catch (error) {
+      console.error('Failed to create history entry:', error);
+      // Don't break the flow for history errors
+    }
+  };
   // Handle task creation
   const handleCreateTask = async (taskData) => {
     try {
@@ -70,6 +82,11 @@ const ProjectDetails = () => {
       setTasks([...tasks, response.data]);
       setShowTaskModal(false);
       toast.success('Task created successfully');
+      await createHistoryEntry(
+        'CREATE_TASK',
+        response.data._id,
+        `created task "${response.data.title}"`
+      );
     } catch (error) {
       console.error('Error creating task:', error);
       toast.error('Failed to create task');
@@ -84,39 +101,68 @@ const handleUpdateTask = async (taskId, taskData) => {
     // Ensure taskId is a string
     const idToUse = String(taskId);
     
+    // Find the original task to compare changes
+    const originalTask = tasks.find(task => String(task._id) === idToUse);
+    if (!originalTask) {
+      console.error('Original task not found:', taskId);
+      return;
+    }
+    
     // Debug log
     console.log('ProjectDetails - Updating task:', {
       url: `/api/tasks/${idToUse}`,
       data: taskData
     });
     
-    // For simplicity, extract only fields that might be expected by the API
+    // Only include required fields and properly format them
     const apiTaskData = {
       title: taskData.title,
       description: taskData.description,
       status: taskData.status,
       priority: taskData.priority,
-      estimated_time: Number(taskData.estimated_time),
-      actual_time: Number(taskData.actual_time || 0),
-      assigned_to: taskData.assigned_to,
-      deadline: taskData.deadline,
-      // Try including or removing project_id based on API requirements
-      // Some APIs expect it, others don't want it during updates
-      project_id: taskData.project_id
+      // Convert to numbers and handle empty/undefined values
+      estimated_time: taskData.estimated_time ? Number(taskData.estimated_time) : 0,
+      actual_time: taskData.actual_time ? Number(taskData.actual_time) : 0,
+      // Ensure assigned_to is properly extracted
+      assigned_to: typeof taskData.assigned_to === 'object' && taskData.assigned_to?._id ? 
+                  taskData.assigned_to._id : taskData.assigned_to,
+      // Ensure deadline is an ISO string
+      deadline: taskData.deadline ? new Date(taskData.deadline).toISOString() : null
     };
     
-    // Add request headers that might be needed
+    // Add request headers
     const response = await api.put(`/api/tasks/${idToUse}`, apiTaskData, {
       headers: {
         'Content-Type': 'application/json'
       }
     });
     
+    // Update the tasks state with the returned data
     setTasks(tasks.map(task => 
-      String(task._id) === idToUse ? response.data : task
+      String(task._id) === idToUse ? (response.data.data || response.data) : task
     ));
     setShowTaskModal(false);
     toast.success('Task updated successfully');
+    
+    // Detect specific changes for more detailed history
+    let historyAction = 'UPDATE_TASK';
+    let historyDescription = `updated task "${taskData.title}"`;
+    
+    // Check for assignment change
+    if (originalTask.assigned_to !== apiTaskData.assigned_to) {
+      historyAction = 'ASSIGN_TASK';
+      const assigneeName = users.find(user => String(user._id) === String(apiTaskData.assigned_to))?.name || 'someone';
+      historyDescription = `assigned "${taskData.title}" to ${assigneeName}`;
+    }
+    // Check for status change to "DONE" (task completion)
+    else if (originalTask.status !== 'DONE' && apiTaskData.status === 'DONE') {
+      historyAction = 'COMPLETE_TASK';
+      historyDescription = `marked "${taskData.title}" as complete`;
+    }
+    
+    // Add history entry
+    await createHistoryEntry(historyAction, idToUse, historyDescription);
+    
   } catch (error) {
     console.error('Error updating task:', error);
     
@@ -124,10 +170,20 @@ const handleUpdateTask = async (taskId, taskData) => {
     if (error.response) {
       console.error('Response status:', error.response.status);
       console.error('Response data:', error.response.data);
-      const errorMsg = error.response.data?.message || 
-                      error.response.data?.error || 
-                      'Failed to update task';
-      toast.error(errorMsg);
+      
+      // More specific error message
+      if (error.response.data?.errors && error.response.data.errors.length > 0) {
+        // Show validation errors if available
+        const validationErrors = error.response.data.errors
+          .map(err => typeof err === 'string' ? err : (err.message || err.field ? `${err.field}: ${err.message}` : JSON.stringify(err)))
+          .join(', ');
+        toast.error(`Validation error: ${validationErrors}`);
+      } else {
+        const errorMsg = error.response.data?.message || 
+                        error.response.data?.error || 
+                        'Failed to update task';
+        toast.error(errorMsg);
+      }
     } else {
       toast.error('Network error while updating task');
     }
@@ -142,6 +198,11 @@ const handleUpdateTask = async (taskId, taskData) => {
       setTasks(tasks.filter(task => task._id !== taskId));
       setShowTaskModal(false);
       toast.success('Task deleted successfully');
+      await createHistoryEntry(
+        'DELETE_TASK',
+        taskId,
+        `deleted task "${taskTitle}"`
+      );
     } catch (error) {
       console.error('Error deleting task:', error);
       toast.error('Failed to delete task');
@@ -166,6 +227,9 @@ const handleUpdateTask = async (taskId, taskData) => {
       return;
     }
     
+    // Store the old status before updating
+    const oldStatus = taskToUpdate.status;
+    
     // Update task locally for immediate UI update
     const updatedTasks = tasks.map(task => {
       if (String(task._id) === taskId) {
@@ -178,7 +242,32 @@ const handleUpdateTask = async (taskId, taskData) => {
     
     // Update task on server
     try {
-      await api.put(`/api/tasks/${taskId}`, { status: newStatus });
+      // Only update the status field, nothing else
+      await api.put(`/api/tasks/${taskId}`, { 
+        status: newStatus 
+      });
+      
+      // Add history entry for status change
+      try {
+        let historyAction = 'STATUS_CHANGE';
+        let historyDescription = `changed status of "${taskToUpdate.title}" from ${oldStatus} to ${newStatus}`;
+        
+        // Special case for completion
+        if (oldStatus !== 'DONE' && newStatus === 'DONE') {
+          historyAction = 'COMPLETE_TASK';
+          historyDescription = `marked "${taskToUpdate.title}" as complete`;
+        }
+        
+        // await api.post(`/api/projects/${projectId}/history`, {
+        //   action: historyAction,
+        //   task: taskId,
+        //   description: historyDescription
+        // });
+      } catch (historyError) {
+        console.error('Failed to create history entry:', historyError);
+        // Don't break the flow for history errors
+      }
+      
       toast.success('Task moved successfully');
     } catch (error) {
       console.error('Error updating task status:', error);
@@ -204,6 +293,11 @@ const handleUpdateTask = async (taskId, taskData) => {
       // Update on server
       await api.put(`/api/tasks/${taskId}`, { status: newStatus });
       toast.success('Task status updated');
+      await createHistoryEntry(
+        'STATUS_CHANGE',
+        taskId,
+        `changed status of "${taskToUpdate.title}" from ${oldStatus} to ${newStatus}`
+      );
     } catch (error) {
       console.error('Error updating task status:', error);
       toast.error('Failed to update task status');
@@ -542,41 +636,52 @@ const handleUpdateTask = async (taskId, taskData) => {
             
             {/* View Mode Switcher */}
             <div className="rounded-lg border border-primary/20 p-1">
-              <div className="flex relative">
-                <div
-                  className="absolute bg-gradient-to-r from-primary/30 to-secondary/30 rounded-md transition-all duration-500 ease-in-out"
-                  style={{
-                    width: "50%",
-                    height: "100%",
-                    top: "0%",
-                    left: viewMode === 'kanban' ? '0%' : '50%',
-                    opacity: 0.8,
-                  }}
-                />
-                <button 
-                  className="btn btn-sm rounded-md border-0 bg-transparent hover:bg-transparent z-10 w-28 flex justify-center items-center"
-                  onClick={() => setViewMode('kanban')}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2-2h-2a2 2 0 01-2-2v-2z" />
-                    </svg>
-                    <span className={viewMode === 'kanban' ? 'font-bold text-base-content' : 'text-base-content/60'}>Kanban</span>
-                  </div>
-                </button>
-                <button 
-                  className="btn btn-sm rounded-md border-0 bg-transparent hover:bg-transparent z-10 w-28 flex justify-center items-center"
-                  onClick={() => setViewMode('list')}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                    <span className={viewMode === 'list' ? 'font-bold text-base-content' : 'text-base-content/60'}>List</span>
-                  </div>
-                </button>
-              </div>
-            </div>
+  <div className="flex relative">
+    <div
+      className="absolute bg-gradient-to-r from-primary/30 to-secondary/30 rounded-md transition-all duration-500 ease-in-out"
+      style={{
+        width: "33.33%",
+        height: "100%",
+        top: "0%",
+        left: viewMode === 'kanban' ? '0%' : viewMode === 'list' ? '33.33%' : '66.66%',
+        opacity: 0.8,
+      }}
+    />
+    <button 
+      className="btn btn-sm rounded-md border-0 bg-transparent hover:bg-transparent z-10 w-28 flex justify-center items-center"
+      onClick={() => setViewMode('kanban')}
+    >
+      <div className="flex items-center justify-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+        </svg>
+        <span className={viewMode === 'kanban' ? 'font-bold text-base-content' : 'text-base-content/60'}>Kanban</span>
+      </div>
+    </button>
+    <button 
+      className="btn btn-sm rounded-md border-0 bg-transparent hover:bg-transparent z-10 w-28 flex justify-center items-center"
+      onClick={() => setViewMode('list')}
+    >
+      <div className="flex items-center justify-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+        <span className={viewMode === 'list' ? 'font-bold text-base-content' : 'text-base-content/60'}>List</span>
+      </div>
+    </button>
+    <button 
+      className="btn btn-sm rounded-md border-0 bg-transparent hover:bg-transparent z-10 w-28 flex justify-center items-center"
+      onClick={() => setViewMode('history')}
+    >
+      <div className="flex items-center justify-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span className={viewMode === 'history' ? 'font-bold text-base-content' : 'text-base-content/60'}>History</span>
+      </div>
+    </button>
+  </div>
+</div>
           </div>
         </div>
       </motion.div>
@@ -593,13 +698,17 @@ const handleUpdateTask = async (taskId, taskData) => {
             />
           </DragDropContext>
         
-      ) : (
+      ) : viewMode === 'list' ? (
         <ListView 
           tasks={filteredTasks} 
           onEditTask={openTaskModal}
           getStatusColor={getStatusColor}
           users={users} 
         />
+      ) : (
+        <div className="mt-4">
+          <ProjectHistory projectId={project._id} />
+        </div>
       )}
       
       {/* Resources Section */}

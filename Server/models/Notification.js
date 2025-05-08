@@ -9,7 +9,7 @@ const NotificationSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ['invitation', 'mention', 'task_assignment', 'comment', 'other'],
+      enum: ['invitation', 'mention', 'task_assignment', 'comment', 'deadline', 'other'],
       default: 'other'
     },
     message: {
@@ -38,6 +38,11 @@ const NotificationSchema = new mongoose.Schema(
     },
     actionLink: {
       type: String
+    },
+    priority: {
+      type: String,
+      enum: ['low', 'medium', 'high'],
+      default: 'medium'
     }
   },
   { timestamps: true }

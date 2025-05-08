@@ -122,6 +122,15 @@ const emitNotification = (userId, notification) => {
   console.log(`Emitting to room: ${room}`);
   
   io.to(room).emit(notification.type === 'invitation' ? 'workspace-invitation' : 'notification', notification);
+
+  // For high priority notifications like deadlines, emit a special event
+  if (notification.priority === 'high' || notification.type === 'deadline') {
+    console.log(`Emitting URGENT notification to user ${userId}`);
+    if (io) {
+      io.to(userId).emit('urgent-notification', notification);
+    }
+  }
+
   return true;
 };
 

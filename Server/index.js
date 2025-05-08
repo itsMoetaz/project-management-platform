@@ -2,10 +2,9 @@ const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/db");
 const app = express();
-const mongoose = require('mongoose');
 const Project = require('./models/Project');
-const Ressource = require('./models/Ressource');
-const Workspace = require('./models/Workspace');
+const notificationController = require('./controllers/notificationController');
+const cron = require('node-cron');
 const axios = require('axios'); // Ajout de l'importation d'axios
 require("dotenv").config();
 const cookieParser = require("cookie-parser");
@@ -44,6 +43,7 @@ const skillsRoutes = require('./routes/skillsRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const messageRoutes = require('./routes/messageRoutes');
+const projectHistoryRoutes = require('./routes/projectHistoryRoutes');
 
 // Utilisation des routes
 app.use("/api/users", userRoutes);
@@ -52,6 +52,7 @@ app.use("/api/projects", projectRoutes);
 app.use("/api/workspaces", workspaceRoutes);
 app.use("/api", taskRoutes);
 app.use('/api', messageRoutes);
+app.use('/api', projectHistoryRoutes);
 app.use("/api/experiences", experienceRoutes);
 app.use("/api/ressources", ressourceRoutes);
 app.use('/api/certifications', certificationRoutes);
@@ -157,6 +158,53 @@ app.post('/api/projects/:id/predict-delay', async (req, res) => {
       error: error.message, 
       stack: error.stack 
     });
+  }
+});
+
+// This sets up a daily check at midnight
+cron.schedule('0 0 * * *', async () => {
+  try {
+    console.log('Running daily project deadline check...');
+    const oneMonthFromNow = new Date();
+    oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
+    
+    // Find projects with deadlines approaching within a month
+    const projects = await Project.find({
+      end_date: {
+        $gte: new Date(), // Not passed yet
+        $lte: oneMonthFromNow // Within a month
+      },
+      // Only notify about projects we haven't sent a notification for yet
+      deadline_notification_sent: { $ne: true }
+    }).populate('id_teamMembre', '_id');
+    
+    console.log(`Found ${projects.length} projects approaching deadline`);
+    
+    // Create notifications for each project
+    for (const project of projects) {
+      const daysRemaining = Math.ceil((new Date(project.end_date) - new Date()) / (1000 * 60 * 60 * 24));
+      
+      // Notify each team member
+      if (project.id_teamMembre && project.id_teamMembre.length > 0) {
+        for (const member of project.id_teamMembre) {
+          await notificationController.createNotification({
+            recipient: member._id,
+            type: 'deadline',
+            message: `Project "${project.project_name || project.name}" deadline approaching in ${daysRemaining} days!`,
+            relatedProject: project._id,
+            actionLink: `/workspace/${project.id_workspace}/projects/${project._id}`,
+            priority: 'high'
+          });
+        }
+      }
+      
+      // Mark that we've sent the notification
+      await Project.findByIdAndUpdate(project._id, { deadline_notification_sent: true });
+    }
+    
+    console.log('Project deadline check completed');
+  } catch (error) {
+    console.error('Error in deadline notification job:', error);
   }
 });
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
+import { motion } from 'framer-motion'; // Make sure you have this installed
 import api from './Api';
 import useSession from '../hooks/useSession';
 import { Link, useNavigate } from 'react-router-dom'; // Add useNavigate
@@ -37,11 +38,39 @@ const NotificationSystem = () => {
       
       // Register the socket event listener
       socketService.on('new-notification', handleNewNotification);
+
+      // Register the socket event listener for urgent notifications
+      socketService.on('urgent-notification', (notification) => {
+        // Add to regular notifications
+        setNotifications(prev => [notification, ...prev]);
+        setUnreadCount(prev => prev + 1);
+        
+        // Also show an immediate toast for important notifications
+        toast(
+          <div className="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-error" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <div className="font-bold">Deadline Alert</div>
+              <div className="text-sm">{notification.message}</div>
+            </div>
+          </div>,
+          {
+            duration: 6000,
+            style: {
+              border: '1px solid #ff5252',
+              padding: '16px',
+            },
+          }
+        );
+      });
       
       // Clean up on unmount
       return () => {
         clearInterval(interval);
         socketService.off('new-notification', handleNewNotification);
+        socketService.off('urgent-notification');
       };
     }
   }, [user]);
@@ -124,6 +153,53 @@ const NotificationSystem = () => {
     return date.toLocaleDateString();
   };
 
+  const handleNotificationClick = (notification) => {
+    markAsRead(notification);
+  };
+
+  const renderNotificationItem = (notification) => {
+    // Determine the icon and styling based on notification type
+    let icon = (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+      </svg>
+    );
+    let extraClass = "";
+    
+    if (notification.type === 'deadline') {
+      icon = (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-error" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      );
+      extraClass = "border-l-4 border-error bg-error/10";
+    }
+    
+    return (
+      <motion.div 
+        key={notification._id}
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className={`p-4 hover:bg-base-200 cursor-pointer ${notification.read ? 'opacity-70' : 'font-medium'} ${extraClass}`}
+        onClick={() => handleNotificationClick(notification)}
+      >
+        <div className="flex items-start gap-3">
+          <div className="flex-shrink-0 mt-1">
+            {icon}
+          </div>
+          <div className="flex-1">
+            <p className={`text-sm mb-1 ${notification.type === 'deadline' ? 'text-error' : ''}`}>
+              {notification.message}
+            </p>
+            <p className="text-xs text-base-content/60">
+              {formatDate(notification.createdAt)}
+            </p>
+          </div>
+        </div>
+      </motion.div>
+    );
+  };
+
   const unreadNotifications = notifications.filter(notification => !notification.read);
   const readNotifications = notifications.filter(notification => notification.read);
 
@@ -178,16 +254,7 @@ const NotificationSystem = () => {
               {unreadNotifications.length > 0 && (
                 <div>
                   <h4 className="font-semibold text-sm mb-2">Unread</h4>
-                  {unreadNotifications.map(notification => (
-                    <div 
-                      key={notification._id} 
-                      className="py-2 px-1 border-b hover:bg-base-300 cursor-pointer bg-base-200"
-                      onClick={() => markAsRead(notification)} 
-                    >
-                      <p className="text-sm font-semibold">{notification.message}</p>
-                      <p className="text-xs text-gray-500 mt-1">{formatDate(notification.createdAt)}</p>
-                    </div>
-                  ))}
+                  {unreadNotifications.map(notification => renderNotificationItem(notification))}
                 </div>
               )}
 
@@ -195,16 +262,7 @@ const NotificationSystem = () => {
               {readNotifications.length > 0 && (
                 <div className="mt-4">
                   <h4 className="font-semibold text-sm mb-2">Read</h4>
-                  {readNotifications.map(notification => (
-                    <div 
-                      key={notification._id} 
-                      className="py-2 px-1 border-b hover:bg-base-300 cursor-pointer opacity-60"
-                      onClick={() => markAsRead(notification)} 
-                    >
-                      <p className="text-sm">{notification.message}</p>
-                      <p className="text-xs text-gray-500 mt-1">{formatDate(notification.createdAt)}</p>
-                    </div>
-                  ))}
+                  {readNotifications.map(notification => renderNotificationItem(notification))}
                 </div>
               )}
 
