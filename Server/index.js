@@ -8,6 +8,7 @@ const cron = require('node-cron');
 const axios = require('axios'); // Ajout de l'importation d'axios
 require("dotenv").config();
 const cookieParser = require("cookie-parser");
+const Bug = require('./models/Bug');
 
 // Initialisation d'Express
 app.use(cookieParser());
@@ -44,6 +45,7 @@ const notificationRoutes = require('./routes/notificationRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const messageRoutes = require('./routes/messageRoutes');
 const projectHistoryRoutes = require('./routes/projectHistoryRoutes');
+const bugRoutes = require('./routes/bugRoutes');
 
 // Utilisation des routes
 app.use("/api/users", userRoutes);
@@ -59,6 +61,7 @@ app.use('/api/certifications', certificationRoutes);
 app.use('/api/skills', skillsRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/bugs', bugRoutes);
 
 // Route pour le matching de profils (non modifiée)
 app.post('/api/match-profiles', async (req, res) => {
