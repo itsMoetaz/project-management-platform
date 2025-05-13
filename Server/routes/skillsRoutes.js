@@ -9,5 +9,6 @@ router.get('/mySkills', authController.protection, skillController.getUserSkills
 router.post('/add', authController.protection, skillController.createSkill); // Protégé
 router.put('/update/:id', authController.protection, skillController.updateSkill); // Protégé
 router.delete('/:id', authController.protection, skillController.deleteSkill); // Protégé
-
+router.get('/member/:userId', authController.protection, skillController.getMemberSkills); // Protégé
+router.post('/add-to-member', authController.protection, skillController.addSkillToMember); // Protégé, maintenant accessible à tous
 module.exports = router;

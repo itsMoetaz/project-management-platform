@@ -1097,3 +1097,21 @@ exports.getWorkspaceCount = async (req, res) => {
   }
 };
 
+exports.checkOwner = async (req, res) => {
+  try {
+    const { workspaceId, userId } = req.query;
+    if (!workspaceId || !userId) {
+      return res.status(400).json({ message: 'workspaceId et userId sont requis' });
+    }
+
+    const workspace = await Workspace.findOne({
+      _id: workspaceId,
+      owner: userId,
+    });
+    res.status(200).json({ isOwner: !!workspace });
+  } catch (err) {
+    console.error('Erreur lors de la vérification du rôle owner :', err.message);
+    res.status(500).json({ message: 'Erreur serveur', error: err.message });
+  }
+};
+

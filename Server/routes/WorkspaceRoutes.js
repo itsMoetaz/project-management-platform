@@ -11,6 +11,9 @@ router.put('/updateWorkspace/:id', protection,  workspaceController.updateWorksp
 router.delete('/:id', protection, workspaceController.deleteWorkspace);
 router.get('/user/workspaces', protection, workspaceController.getUserWorkspaces);
 
+
+router.get('/check-owner', protection, workspaceController.checkOwner);
+
 router.post('/:workspaceId/projects', protection, workspaceController.createProject);
 router.get('/:workspaceId/projects', protection, workspaceController.getProjects);
 

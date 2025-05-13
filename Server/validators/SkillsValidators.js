@@ -18,6 +18,8 @@ const skillSchema = Joi.object({
     'number.min': 'Tags must be at least 0',
     'number.max': 'Tags must not exceed 100',
   }),
+  userId: Joi.any(),         // Accepte n'importe quelle valeur
+  workspaceId: Joi.any(),    // Accepte n'importe quelle valeur
 });
 
 const skillUpdateSchema = Joi.object({
@@ -25,6 +27,8 @@ const skillUpdateSchema = Joi.object({
   description: Joi.string().trim(),
   category: Joi.string().valid('Technical', 'Soft Skill', 'Management'),
   tags: Joi.number().min(0).max(100),
+  userId: Joi.any(),
+  workspaceId: Joi.any(),
 }).min(1).messages({
   'object.min': 'At least one field must be provided for update',
 });
