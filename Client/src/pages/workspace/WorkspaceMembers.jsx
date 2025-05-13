@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import api from '../../utils/Api';
@@ -13,21 +13,36 @@ const WorkspaceMembers = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [updating, setUpdating] = useState(null);
   const [memberStats, setMemberStats] = useState({});
-
+  const [activePopover, setActivePopover] = useState(null);
+  const [memberProfiles, setMemberProfiles] = useState({});
+  const popoverRef = useRef(null);
+  const [popoverPosition, setPopoverPosition] = useState({ top: 0, left: 0 });
+  
   useEffect(() => {
     if (workspace) {
       fetchMembers();
     }
   }, [workspace]);
-
+  
+  // Close popover when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (popoverRef.current && !popoverRef.current.contains(event.target)) {
+        setActivePopover(null);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+  
   const fetchMembers = async () => {
     setIsLoading(true);
     try {
-      // Get detailed member information including workspace roles
       const response = await api.get(`/api/workspaces/${workspace._id}/members`);
       setMembers(response.data);
-      
-      // Fetch stats for each member
       fetchMemberStats(response.data);
     } catch (error) {
       console.error('Error fetching members:', error);
@@ -43,15 +58,14 @@ const WorkspaceMembers = () => {
       setIsLoading(false);
     }
   };
-
-  // Update the fetchMemberStats function to get accurate counts
+  
   const fetchMemberStats = async (membersList) => {
     try {
       const statsObj = {};
+      const profilesObj = {};
       
       for (const member of membersList) {
         try {
-          // Default stats
           const memberStats = { 
             workspacesCount: 1, 
             projectsCount: 0,
@@ -60,7 +74,6 @@ const WorkspaceMembers = () => {
             contributionPercentage: 0 
           };
           
-          // Get workspace count from the server
           try {
             const countResponse = await api.get(`/api/users/${member._id}/workspaces/count`);
             if (countResponse.data && typeof countResponse.data.count === 'number') {
@@ -68,26 +81,44 @@ const WorkspaceMembers = () => {
             }
           } catch (countError) {
             console.warn(`Error getting workspace count for ${member._id}:`, countError);
-            // Keep default count (1)
+          }
+          
+          let memberProfile = {
+            _id: member._id,
+            name: member.name || "User",
+            email: member.email || "",
+            bio: 'No bio available',
+            createdAt: member.createdAt || new Date().toISOString()
+          };
+          
+          try {
+            const profileResponse = await api.get(`/api/users/${member._id}/profile`);
+            if (profileResponse.data && profileResponse.data.profile) {
+              memberProfile = profileResponse.data.profile;
+            }
+          } catch (profileError) {
+            console.warn(`Error fetching profile for ${member._id}:`, profileError);
           }
           
           statsObj[member._id] = memberStats;
+          profilesObj[member._id] = memberProfile;
           
           setMemberStats(prev => ({ ...prev, [member._id]: memberStats }));
+          setMemberProfiles(prev => ({ ...prev, [member._id]: memberProfile }));
         } catch (memberError) {
           console.error(`Error processing member ${member._id}:`, memberError);
         }
         
-        // Add slight delay between members
         await new Promise(resolve => setTimeout(resolve, 50));
       }
       
       setMemberStats(statsObj);
+      setMemberProfiles(profilesObj);
     } catch (error) {
       console.error('Error fetching member data:', error);
     }
   };
-
+  
   const handleRoleChange = async (memberId, newRole) => {
     if (!hasPermission('edit', workspace, user._id)) {
       toast.error('You do not have permission to change member roles', {
@@ -115,9 +146,7 @@ const WorkspaceMembers = () => {
           borderRadius: '0px'
         }
       });
-      // Refresh the member list
       fetchMembers();
-      // Also refresh the workspace to update all UI components
       refreshWorkspace();
     } catch (error) {
       console.error('Error updating member role:', error);
@@ -133,7 +162,7 @@ const WorkspaceMembers = () => {
       setUpdating(null);
     }
   };
-
+  
   const handleRemoveMember = async (memberId) => {
     if (!hasPermission('edit', workspace, user._id)) {
       toast.error('You do not have permission to remove members', {
@@ -163,9 +192,7 @@ const WorkspaceMembers = () => {
           borderRadius: '0px'
         }
       });
-      // Refresh the member list
       fetchMembers();
-      // Also refresh the workspace
       refreshWorkspace();
     } catch (error) {
       console.error('Error removing member:', error);
@@ -181,16 +208,35 @@ const WorkspaceMembers = () => {
       setUpdating(null);
     }
   };
-
+  
   const handleViewProfile = (memberId) => {
-    // Navigate to the member profile page
     navigate(`/workspace/${workspace._id}/members/${memberId}`);
   };
-
-  // Get current user's role in this workspace
+  
+  const togglePopover = (memberId, event) => {
+    if (activePopover === memberId) {
+      setActivePopover(null);
+    } else {
+      if (event && event.currentTarget) {
+        const rect = event.currentTarget.getBoundingClientRect();
+        setPopoverPosition({
+          top: rect.top - 10,
+          left: Math.max(10, rect.left - 150 + rect.width / 2)
+        });
+      }
+      setActivePopover(memberId);
+    }
+  };
+  
   const currentUserRole = getUserRole(workspace, user?._id);
   const canManageRoles = currentUserRole === 'owner' || currentUserRole === 'admin';
-
+  
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Unknown';
+    const date = new Date(dateString);
+    return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+  };
+  
   return (
     <div className="space-y-6">
       <ToastContainer />
@@ -224,8 +270,12 @@ const WorkspaceMembers = () => {
                   {members.map((member) => (
                     <tr key={member._id}>
                       <td>
-                        <div className="flex items-center gap-3">
-                          <div className="avatar">
+                        <div className="flex items-center gap-3 relative">
+                          <div 
+                            className="avatar cursor-pointer"
+                            onClick={(e) => togglePopover(member._id, e)}
+                            onMouseEnter={(e) => togglePopover(member._id, e)}
+                          >
                             <div className="w-10 rounded-full">
                               {member.profile_picture ? 
                                 <img src={member.profile_picture} alt="Profile"/>
@@ -236,6 +286,105 @@ const WorkspaceMembers = () => {
                               }
                             </div>
                           </div>
+                          
+                          {activePopover === member._id && (
+                            <div 
+                              ref={popoverRef}
+                              className="fixed z-50 text-sm transition-opacity bg-base-100 border border-base-300 rounded-lg shadow-xl"
+                              style={{
+                                top: `${popoverPosition.top}px`,
+                                left: `${popoverPosition.left}px`,
+                                width: '300px',
+                                maxHeight: '80vh',
+                                overflowY: 'auto'
+                              }}
+                              onMouseLeave={() => setActivePopover(null)}
+                            >
+                              <div className="p-3">
+                                <div className="flex items-center justify-between mb-2">
+                                  <div className="avatar">
+                                    <div className="w-12 h-12 rounded-full">
+                                      {member.profile_picture ? 
+                                        <img src={member.profile_picture} alt={member.name} className="rounded-full"/>
+                                        :
+                                        <span className="bg-primary text-white flex items-center justify-center h-full text-lg">
+                                          {member.name?.charAt(0).toUpperCase() || member.email?.charAt(0).toUpperCase() || '?'}
+                                        </span>
+                                      }
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <span className="badge badge-primary">{member.role || 'viewer'}</span>
+                                  </div>
+                                </div>
+                                <p className="text-base font-semibold leading-none text-base-content">
+                                  {member.name}
+                                </p>
+                                <p className="mb-3 text-sm font-normal opacity-70">
+                                  {member.email}
+                                </p>
+                                <p className="mb-4 text-sm">
+                                  {memberProfiles[member._id]?.bio || 'No bio available'}
+                                </p>
+                                
+                                <ul className="grid grid-cols-3 text-sm mb-2 gap-1">
+                                  <li>
+                                    <div className="text-center">
+                                      <span className="font-semibold block text-base-content text-lg">
+                                        {memberStats[member._id]?.workspacesCount || '1'}
+                                      </span>
+                                      <span className="opacity-70 text-xs">Workspaces</span>
+                                    </div>
+                                  </li>
+                                  <li>
+                                    <div className="text-center">
+                                      <span className="font-semibold block text-base-content text-lg">
+                                        {memberStats[member._id]?.projectsCount || '0'}
+                                      </span>
+                                      <span className="opacity-70 text-xs">Projects</span>
+                                    </div>
+                                  </li>
+                                  <li>
+                                    <div className="text-center">
+                                      <span className="font-semibold block text-base-content text-lg">
+                                        {memberStats[member._id]?.tasksCount || '0'}
+                                      </span>
+                                      <span className="opacity-70 text-xs">Tasks</span>
+                                    </div>
+                                  </li>
+                                </ul>
+                                
+                                {memberStats[member._id]?.tasksCount > 0 && (
+                                  <div className="mt-3">
+                                    <div className="flex justify-between mb-1 text-xs">
+                                      <span>Tasks completed</span>
+                                      <span>
+                                        {memberStats[member._id]?.completedTasksCount || '0'} / {memberStats[member._id]?.tasksCount || '0'}
+                                      </span>
+                                    </div>
+                                    <div className="w-full bg-base-300 rounded-full h-2.5">
+                                      <div 
+                                        className="bg-primary h-2.5 rounded-full" 
+                                        style={{ 
+                                          width: `${memberStats[member._id]?.contributionPercentage || 0}%` 
+                                        }}
+                                      ></div>
+                                    </div>
+                                    <div className="text-right text-xs mt-1">
+                                      <span className="font-medium">
+                                        {memberStats[member._id]?.contributionPercentage || 0}% complete
+                                      </span>
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                <div className="mt-3 text-xs opacity-70 text-center pt-2 border-t border-base-300">
+                                  Member since: {formatDate(memberProfiles[member._id]?.createdAt || member.createdAt || member.joinedAt)}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          
                           <div>
                             <div className="font-bold">{member.name}</div>
                             {workspace.owner === member._id && (

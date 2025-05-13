@@ -25,6 +25,7 @@ import useSession from './hooks/useSession';
 import ProjectDetails from './pages/workspace/ProjectDetails.jsx';
 import AdminProfile from "./dashboard/AdminProfile.jsx";
 import ResourceDetails from './pages/workspace/ResourceDetails.jsx';
+import MemberProfile from './pages/workspace/MemberProfile.jsx'; // Import the new component
 
 import WorkspaceTasks from './pages/workspace/WorkspaceTasks.jsx';
 import AboutUs from './shared/AboutUs.jsx';
@@ -90,6 +91,7 @@ function App() {
             <Route path="projects/:projectId" element={<ProjectDetails />} />
             <Route path="projects/:projectId/resources/:resourceId" element={<ResourceDetails />} />
             <Route path="members" element={<WorkspaceMembers />} />
+            <Route path="members/:userId" element={<MemberProfile />} /> {/* New route for MemberProfile */}
             <Route path="settings" element={<WorkspaceSettings />} />
           </Route>
         
