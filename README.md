@@ -1,26 +1,65 @@
-<h2>Project Management Platform</h2>
-<h3>Realized by Team Akatsuki (4TWIN2)</h3>
-<br>
-Description:<br>
-The Project Management Platform is a comprehensive tool designed to help users (engineers, project teams, and project managers) create, track, and manage their projects efficiently. The platform provides features for project creation, task management, team collaboration, and progress tracking, all while leveraging intelligent AI modules for enhanced productivity.<br>
-<br>
-Key Features:<br>
-✅ Authentication and Authorization: Secure user login and role-based access control.<br>
-✅ Project Management: Create, update, and manage projects with ease.<br>
-✅ Task Management: Assign, track, and prioritize tasks within projects.<br>
-✅ Dashboarding: Visualize project progress and key metrics in real-time.<br>
-✅ Team Collaboration: Invite team members, assign roles, and communicate effectively.<br>
-✅ Activity Log and History: Track all actions and changes for accountability.<br><br>
+# 🗂️ Project Management Platform
 
+## 📝 Overview
 
-AI Modules:<br>
-🤖 Smart Task Prioritization: Automatically prioritize tasks based on deadlines, dependencies, and resources.<br>
-📊 Predictive Analytics: Forecast project timelines, identify potential delays, and optimize resource allocation.<br>
+The Project Management Platform is a full-stack web application designed to simplify the management of projects, tasks, teams, and deadlines. It combines modern UI/UX with AI-powered analytics for smart prioritization and performance forecasting.
 
-Tech Stack:<br>
-🛠️ Frontend: React, Tailwind CSS<br>
-🛠️ Backend: Node.js, Express<br>
-🛠️ Database: MongoDB<br>
-🛠️ Authentication: JWT, OAuth<br>
-🛠️ AI Integration: Python, TensorFlow (for predictive analytics)<br>
-🛠️ Deployment: Docker
+---
+
+## ✨ Features
+
+- 🔐 Secure authentication and role-based authorization (JWT & OAuth)
+- 📁 Create and manage multiple projects
+- ✅ Assign, update, and track tasks within projects
+- 📊 Interactive dashboards to monitor project status
+- 🧑‍🤝‍🧑 Team collaboration with role management
+- 📜 Activity logs to track project history
+- 🤖 AI-enhanced modules for task prioritization and predictive analytics
+
+---
+
+## 💻 Tech Stack
+
+### 🧩 Frontend
+
+- React.js
+- Tailwind CSS
+
+### 🔧 Backend
+
+- Node.js
+- Express.js
+
+### 🛠️ Other Tools
+
+- MongoDB (NoSQL database)
+- Docker (Containerization)
+- JWT, OAuth (Authentication)
+- Python + TensorFlow (AI Modules)
+
+---
+
+## 📂 Directory Structure
+
+project-management-platform/
+├── client/ # React + Tailwind frontend
+├── server/ # Express backend
+├── ai/ # Python ML modules
+├── docker-compose.yml # Docker orchestration file
+└── README.md
+
+---
+
+## 🚀 Getting Started
+
+Follow these steps to set up the platform locally:
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/itsMoetaz/project-management-platform.git
+cd project-management-platform
+
+Run using Docker:
+
+docker-compose up --build
