@@ -1,4 +1,4 @@
-# 🗂️ Project Management Platform
+# 🗂️ Planify - Project Management Platform
 
 ## 📝 Overview
 
@@ -56,10 +56,27 @@ Follow these steps to set up the platform locally:
 
 1. Clone the repository:
 
-```bash
 git clone https://github.com/itsMoetaz/project-management-platform.git
 cd project-management-platform
 
-Run using Docker:
+2. Install dependencies:
 
+cd server
+npm install
+
+cd ../client
+npm install
+
+3. Run the application
+
+Start the backend:
+cd server
+npm run dev
+
+Start the frontend:
+cd ../client
+npm start
+
+Run using Docker:
+cd project-management-platform
 docker-compose up --build
