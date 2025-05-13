@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import api from '../../utils/Api';
 import useSession from '../../hooks/useSession';
@@ -8,6 +8,7 @@ import { hasPermission, getUserRole } from '../../utils/permissionUtils';
 const WorkspaceMembers = () => {
   const { workspace, refreshWorkspace, projects } = useOutletContext() || {};
   const { user } = useSession();
+  const navigate = useNavigate();
   const [members, setMembers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [updating, setUpdating] = useState(null);
@@ -40,11 +41,8 @@ const WorkspaceMembers = () => {
   const fetchMembers = async () => {
     setIsLoading(true);
     try {
-      // Get detailed member information including workspace roles
       const response = await api.get(`/api/workspaces/${workspace._id}/members`);
       setMembers(response.data);
-      
-      // Fetch stats for each member
       fetchMemberStats(response.data);
     } catch (error) {
       console.error('Error fetching members:', error);
@@ -61,76 +59,65 @@ const WorkspaceMembers = () => {
     }
   };
   
-// Update the fetchMemberStats function to get accurate counts
-const fetchMemberStats = async (membersList) => {
-  try {
-    const statsObj = {};
-    const profilesObj = {};
-    
-    for (const member of membersList) {
-      try {
-        // Default stats
-        const memberStats = { 
-          workspacesCount: 1, 
-          projectsCount: 0,
-          tasksCount: 0,
-          completedTasksCount: 0,
-          contributionPercentage: 0 
-        };
-        
-        // Get workspace count from the server
+  const fetchMemberStats = async (membersList) => {
+    try {
+      const statsObj = {};
+      const profilesObj = {};
+      
+      for (const member of membersList) {
         try {
-          const countResponse = await api.get(`/api/users/${member._id}/workspaces/count`);
-          if (countResponse.data && typeof countResponse.data.count === 'number') {
-            memberStats.workspacesCount = countResponse.data.count;
+          const memberStats = { 
+            workspacesCount: 1, 
+            projectsCount: 0,
+            tasksCount: 0,
+            completedTasksCount: 0,
+            contributionPercentage: 0 
+          };
+          
+          try {
+            const countResponse = await api.get(`/api/users/${member._id}/workspaces/count`);
+            if (countResponse.data && typeof countResponse.data.count === 'number') {
+              memberStats.workspacesCount = countResponse.data.count;
+            }
+          } catch (countError) {
+            console.warn(`Error getting workspace count for ${member._id}:`, countError);
           }
-        } catch (countError) {
-          console.warn(`Error getting workspace count for ${member._id}:`, countError);
-          // Keep default count (1)
+          
+          let memberProfile = {
+            _id: member._id,
+            name: member.name || "User",
+            email: member.email || "",
+            bio: 'No bio available',
+            createdAt: member.createdAt || new Date().toISOString()
+          };
+          
+          try {
+            const profileResponse = await api.get(`/api/users/${member._id}/profile`);
+            if (profileResponse.data && profileResponse.data.profile) {
+              memberProfile = profileResponse.data.profile;
+            }
+          } catch (profileError) {
+            console.warn(`Error fetching profile for ${member._id}:`, profileError);
+          }
+          
+          statsObj[member._id] = memberStats;
+          profilesObj[member._id] = memberProfile;
+          
+          setMemberStats(prev => ({ ...prev, [member._id]: memberStats }));
+          setMemberProfiles(prev => ({ ...prev, [member._id]: memberProfile }));
+        } catch (memberError) {
+          console.error(`Error processing member ${member._id}:`, memberError);
         }
         
-        // ... rest of your stats calculation
-        
-        // Get profile info
-        let memberProfile = {
-          _id: member._id,
-          name: member.name || "User",
-          email: member.email || "",
-          bio: 'No bio available',
-          createdAt: member.createdAt || new Date().toISOString()
-        };
-        
-        try {
-          const profileResponse = await api.get(`/api/users/${member._id}/profile`);
-          if (profileResponse.data && profileResponse.data.profile) {
-            memberProfile = profileResponse.data.profile;
-          }
-        } catch (profileError) {
-          console.warn(`Error fetching profile for ${member._id}:`, profileError);
-          // Keep default profile
-        }
-        
-        // Update state
-        statsObj[member._id] = memberStats;
-        profilesObj[member._id] = memberProfile;
-        
-        setMemberStats(prev => ({ ...prev, [member._id]: memberStats }));
-        setMemberProfiles(prev => ({ ...prev, [member._id]: memberProfile }));
-      } catch (memberError) {
-        console.error(`Error processing member ${member._id}:`, memberError);
+        await new Promise(resolve => setTimeout(resolve, 50));
       }
       
-      // Add slight delay between members
-      await new Promise(resolve => setTimeout(resolve, 50));
+      setMemberStats(statsObj);
+      setMemberProfiles(profilesObj);
+    } catch (error) {
+      console.error('Error fetching member data:', error);
     }
-    
-    setMemberStats(statsObj);
-    setMemberProfiles(profilesObj);
-    
-  } catch (error) {
-    console.error('Error fetching member data:', error);
-  }
-};
+  };
   
   const handleRoleChange = async (memberId, newRole) => {
     if (!hasPermission('edit', workspace, user._id)) {
@@ -159,11 +146,8 @@ const fetchMemberStats = async (membersList) => {
           borderRadius: '0px'
         }
       });
-      // Refresh the member list
       fetchMembers();
-      // Also refresh the workspace to update all UI components
       refreshWorkspace();
-      
     } catch (error) {
       console.error('Error updating member role:', error);
       toast.error('Failed to update member role', {
@@ -208,11 +192,8 @@ const fetchMemberStats = async (membersList) => {
           borderRadius: '0px'
         }
       });
-      // Refresh the member list
       fetchMembers();
-      // Also refresh the workspace
       refreshWorkspace();
-      
     } catch (error) {
       console.error('Error removing member:', error);
       toast.error('Failed to remove member', {
@@ -228,29 +209,28 @@ const fetchMemberStats = async (membersList) => {
     }
   };
   
+  const handleViewProfile = (memberId) => {
+    navigate(`/workspace/${workspace._id}/members/${memberId}`);
+  };
+  
   const togglePopover = (memberId, event) => {
     if (activePopover === memberId) {
       setActivePopover(null);
     } else {
-      // Calculate position based on the clicked element
       if (event && event.currentTarget) {
         const rect = event.currentTarget.getBoundingClientRect();
-        
-        // Position it centered above the avatar
         setPopoverPosition({
-          top: rect.top - 10, // Position it slightly above the avatar
-          left: Math.max(10, rect.left - 150 + rect.width / 2) // Center it, but keep it on screen
+          top: rect.top - 10,
+          left: Math.max(10, rect.left - 150 + rect.width / 2)
         });
       }
       setActivePopover(memberId);
     }
   };
   
-  // Get current user's role in this workspace
   const currentUserRole = getUserRole(workspace, user?._id);
   const canManageRoles = currentUserRole === 'owner' || currentUserRole === 'admin';
   
-  // Format date to display in a user-friendly way
   const formatDate = (dateString) => {
     if (!dateString) return 'Unknown';
     const date = new Date(dateString);
@@ -291,7 +271,6 @@ const fetchMemberStats = async (membersList) => {
                     <tr key={member._id}>
                       <td>
                         <div className="flex items-center gap-3 relative">
-                          {/* Profile Avatar with Popover */}
                           <div 
                             className="avatar cursor-pointer"
                             onClick={(e) => togglePopover(member._id, e)}
@@ -308,7 +287,6 @@ const fetchMemberStats = async (membersList) => {
                             </div>
                           </div>
                           
-                          {/* User Profile Popover */}
                           {activePopover === member._id && (
                             <div 
                               ref={popoverRef}
@@ -349,7 +327,6 @@ const fetchMemberStats = async (membersList) => {
                                   {memberProfiles[member._id]?.bio || 'No bio available'}
                                 </p>
                                 
-                                {/* Stats Row */}
                                 <ul className="grid grid-cols-3 text-sm mb-2 gap-1">
                                   <li>
                                     <div className="text-center">
@@ -377,7 +354,6 @@ const fetchMemberStats = async (membersList) => {
                                   </li>
                                 </ul>
                                 
-                                {/* Progress bar for task completion */}
                                 {memberStats[member._id]?.tasksCount > 0 && (
                                   <div className="mt-3">
                                     <div className="flex justify-between mb-1 text-xs">
@@ -402,7 +378,6 @@ const fetchMemberStats = async (membersList) => {
                                   </div>
                                 )}
                                 
-                                {/* Member since date */}
                                 <div className="mt-3 text-xs opacity-70 text-center pt-2 border-t border-base-300">
                                   Member since: {formatDate(memberProfiles[member._id]?.createdAt || member.createdAt || member.joinedAt)}
                                 </div>
@@ -439,17 +414,27 @@ const fetchMemberStats = async (membersList) => {
                       </td>
                       {canManageRoles && (
                         <td>
-                          {workspace.owner !== member._id && member._id !== user?._id && (
-                            <button 
-                              className="btn btn-sm btn-error"
-                              onClick={() => handleRemoveMember(member._id)}
-                              disabled={updating === member._id}
-                            >
-                              {updating === member._id ? (
-                                <span className="loading loading-spinner loading-xs"></span>
-                              ) : 'Remove'}
-                            </button>
-                          )}
+                          <div className="flex gap-2">
+                            {workspace.owner !== member._id && member._id !== user?._id && (
+                              <>
+                                <button 
+                                  className="btn btn-sm btn-info"
+                                  onClick={() => handleViewProfile(member._id)}
+                                >
+                                  View Profile
+                                </button>
+                                <button 
+                                  className="btn btn-sm btn-error"
+                                  onClick={() => handleRemoveMember(member._id)}
+                                  disabled={updating === member._id}
+                                >
+                                  {updating === member._id ? (
+                                    <span className="loading loading-spinner loading-xs"></span>
+                                  ) : 'Remove'}
+                                </button>
+                              </>
+                            )}
+                          </div>
                         </td>
                       )}
                     </tr>

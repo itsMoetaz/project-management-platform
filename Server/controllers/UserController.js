@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const { validateUser, validateUpdateUser } = require('../validators/validators');
 const mongoose = require('mongoose'); // Add this import
 const Workspace = require('../models/Workspace');
+
 // const Project = require('../models/Project'); // This was missing
 // const Task = require('../models/Task'); // This was missing
 const jwt = require('jsonwebtoken'); // Add this line to import JWT
@@ -273,53 +274,56 @@ const getBasicUserInfo = async (req, res) => {
     }
 };
 
+// controllers/userController.js
 const getUserProfile = async (req, res) => {
   try {
     const { userId } = req.params;
     
-    // Default profile to return in case of errors
     const defaultProfile = {
       profile: {
         _id: userId,
-        name: "User",
+        name: "Utilisateur",
         email: "",
-        bio: 'No bio available',
+        bio: 'Aucune bio disponible',
+        phone_number: 'Aucun numéro de téléphone fourni',
         profile_picture: null,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        skills: [] // Ajouter un tableau de compétences vide par défaut
       }
     };
     
     try {
-      // Find the user
-      const user = await User.findById(userId).select('name email bio profile_picture createdAt');
+      const user = await User.findById(userId)
+        .select('name email bio phone_number profile_picture createdAt skills'); // Inclure les compétences
       
       if (!user) {
         return res.status(200).json(defaultProfile);
       }
       
-      // Just return the user profile without trying to count workspaces/projects/tasks
       return res.status(200).json({
         profile: {
           _id: user._id,
           name: user.name,
           email: user.email,
-          bio: user.bio || 'No bio available',
+          bio: user.bio || 'Aucune bio disponible',
+          phone_number: user.phone_number || 'Aucun numéro de téléphone fourni',
           profile_picture: user.profile_picture,
-          createdAt: user.createdAt
+          createdAt: user.createdAt,
+          skills: user.skills || [] // Inclure les compétences
         }
       });
       
     } catch (userError) {
-      console.error('Error fetching user:', userError);
+      console.error('Erreur lors de la récupération de l\'utilisateur :', userError);
       return res.status(200).json(defaultProfile);
     }
     
   } catch (error) {
-    console.error('Error fetching user profile:', error);
-    // Return default profile instead of error
-
+    console.error('Erreur lors de la récupération du profil utilisateur :', error);
+    return res.status(200).json(defaultProfile);
   }
 };
+
 const getUserWorkspacesCount = async (req, res) => {
   try {
     const { userId } = req.params;

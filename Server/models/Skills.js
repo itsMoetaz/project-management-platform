@@ -6,6 +6,11 @@ const skillSchema = new mongoose.Schema({
     ref: 'User', // Référence au modèle User
     required: true, // Ce champ est obligatoire
   },
+  workspaceId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Workspace',
+    required: false, // Ce champ n'est pas obligatoire
+  },
   name: {
     type: String,
     required: true,
