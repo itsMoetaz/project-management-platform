@@ -28,6 +28,7 @@ import ResourceDetails from './pages/workspace/ResourceDetails.jsx';
 import MemberProfile from './pages/workspace/MemberProfile.jsx'; // Import the new component
 
 import WorkspaceTasks from './pages/workspace/WorkspaceTasks.jsx';
+import ResignationList from './pages/workspace/ResignationList.jsx';
 import AboutUs from './shared/AboutUs.jsx';
 import Contact from './shared/Contact.jsx';
 import Home from './pages/Home.jsx';
@@ -93,6 +94,7 @@ function App() {
             <Route path="members" element={<WorkspaceMembers />} />
             <Route path="members/:userId" element={<MemberProfile />} /> {/* New route for MemberProfile */}
             <Route path="settings" element={<WorkspaceSettings />} />
+            <Route path="resignations" element={<ResignationList />} />
           </Route>
         
           <Route path="/acceuil" element={
