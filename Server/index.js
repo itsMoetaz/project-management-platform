@@ -46,7 +46,7 @@ const dashboardRoutes = require('./routes/dashboardRoutes');
 const messageRoutes = require('./routes/messageRoutes');
 const projectHistoryRoutes = require('./routes/projectHistoryRoutes');
 const bugRoutes = require('./routes/bugRoutes');
-
+const resignationRoutes = require('./routes/resignationRoutes');
 // Utilisation des routes
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
@@ -62,7 +62,7 @@ app.use('/api/skills', skillsRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/bugs', bugRoutes);
-
+app.use('/api/resignations', resignationRoutes);
 // Route pour le matching de profils (non modifiée)
 app.post('/api/match-profiles', async (req, res) => {
   const { workspace_id, task_description } = req.body;
