@@ -479,7 +479,7 @@ const BugController = {
       if (isOwner) {
         return res.status(403).json({
           success: false,
-          message: "Workspace owners cannot assign bugs",
+          message: "Only project members can assign bugs",
         });
       } else {
         console.log("id membre ", req.user._id.toString());
@@ -557,7 +557,7 @@ const BugController = {
     if (!bug.assigned_to || bug.assigned_to.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
-        message: 'Only the assigned user can resolve this bug',
+        message: 'Only the Member can resolve this bug',
       });
     }
 

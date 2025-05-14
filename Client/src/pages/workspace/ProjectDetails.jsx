@@ -10,6 +10,8 @@ import ResourceModal from '../../components/project/ResourceModal';
 import ResourceList from '../../components/project/ResourceList';
 import api from '../../utils/Api';
 import ProjectHistory from '../../components/project/ProjectHistory';
+import BugModal from '../../components/project/BugModal';
+import BugDetailsModal from '../../components/project/BugDetailsModal';
 
 const ProjectDetails = () => {
   const { id, projectId } = useParams();
@@ -28,6 +30,14 @@ const ProjectDetails = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const modalRef = useRef(null);
+  const [bugs, setBugs] = useState([]); // Nouvel état pour les bugs
+  const [showBugModal, setShowBugModal] = useState(false); // Modal pour bugs
+  const [currentBug, setCurrentBug] = useState(null); // Pour édition future
+  const [isOwner, setIsOwner] = useState(false); // Vérifier si owner
+  const [isMember, setIsMember] = useState(false);
+  const currentUserId = localStorage.getItem('userId');
+  const [showBugDetailsModal, setShowBugDetailsModal] = useState(false); // New state for details modal
+  const openBugsCount = bugs.filter((bug) => bug.status === 'OPEN').length;
 
   // Fetch project data
   useEffect(() => {
@@ -49,6 +59,11 @@ const ProjectDetails = () => {
         // Fetch workspace members
         const workspaceResponse = await api.get(`/api/workspaces/${id}/members`);
         setUsers(workspaceResponse.data || []);
+
+        const bugsResponse = await api.get(`/api/bugs/projects/${projectId}/bugs`);
+        console.log('Bugs response:', bugsResponse.data);
+        setBugs(bugsResponse.data.data || bugsResponse.data); 
+
       } catch (error) {
         console.error('Error fetching project details:', error);
         toast.error('Failed to load project data');
@@ -59,6 +74,178 @@ const ProjectDetails = () => {
 
     fetchProjectDetails();
   }, [id, projectId]);
+
+
+   // Handle bug creation
+   const handleCreateBug = async (bugData) => {
+    try {
+      const formData = new FormData();
+      formData.append('title', bugData.title);
+      formData.append('description', bugData.description);
+      formData.append('status', bugData.status);
+      formData.append('priority', bugData.priority);
+      formData.append('complexity', bugData.complexity);
+      formData.append('closure_date', bugData.closure_date);
+      formData.append('module', bugData.module);
+      formData.append('type', bugData.type);
+      if (bugData.image) {
+        formData.append('image', bugData.image);
+      }
+
+      console.log('Creating bug with data:', Object.fromEntries(formData));
+      const response = await api.post(`/api/bugs/projects/${projectId}/bugs`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+  
+      console.log('Bug created:', response.data);
+      setBugs([...bugs, response.data.data]);
+      setShowBugModal(false);
+      toast.success('Bug reported successfully');
+    } catch (error) {
+      console.error('Error creating bug:', error);
+      if (error.response) {
+        console.error('Response status:', error.response.status);
+        console.error('Response data:', error.response.data);
+      }
+      toast.error(error.response?.data?.message || 'Failed to create bug');
+    }
+  };
+
+
+ // Handle bug update
+ const handleUpdateBug = async (bugId, bugData) => {
+  try {
+
+      // Ensure taskId is a string
+      const idToUse = String(bugId);
+
+    //const bugId = String(bugData._id);
+    if (!idToUse || idToUse === "undefined") {
+      console.error("Bug ID is missing or undefined");
+      toast.error("Invalid bug data: missing ID");
+      return;
+    }
+    // Préparation des données au format JSON
+    const apiBugData = {
+      title: bugData.title,
+      description: bugData.description,
+      status: bugData.status,
+      priority: bugData.priority,
+      complexity: bugData.complexity,
+      closure_date: bugData.closure_date,
+      module: bugData.module,
+      type: bugData.type,
+       /*assigned_to: bugData.assigned_to,*/
+      // project_id: projectId // Ajouter uniquement si requis par l’API
+    };
+
+    // Debug facultatif
+    console.log('Updating bug (JSON version):', {
+      url: `/api/bugs/update/${idToUse}`,
+      data: apiBugData
+    });
+
+    const response = await api.put(`/api/bugs/update/${idToUse}`, apiBugData, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    setBugs(prevBugs =>
+      prevBugs.map(bug =>
+        String(bug._id) === bugId ? response.data.data : bug
+      )
+    );
+
+    setShowBugModal(false);
+    setCurrentBug(null);
+    toast.success('Bug updated successfully');
+  } catch (error) {
+    console.error('Error updating bug:', error);
+    const errMsg =
+      error.response?.data?.message ||
+      error.response?.data?.errors?.map(e => e.msg).join(', ') ||
+      'Failed to update bug';
+    toast.error(errMsg);
+  }
+};
+const handleDeleteBug = async (bugId) => {
+  try {
+    console.log('Deleting bug:', { url: `/api/bugs/bugs/${bugId}` });
+    await api.delete(`/api/bugs/bugs/${bugId}`);
+    setBugs(bugs.filter(bug => String(bug._id) !== String(bugId)));
+    toast.success('Bug deleted successfully');
+  } catch (error) {
+    console.error('Error deleting bug:', error);
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+      const errorMsg = error.response.data?.message || error.response.data?.error || 'Failed to delete bug';
+      toast.error(errorMsg);
+    } else {
+      toast.error('Network error while deleting bug');
+    }
+  }
+};
+
+const handleAssignBug = async (bugId) => {
+  try {
+    console.log('Assigning bug:', {
+      url: `/api/bugs/bugs/${bugId}/assign`,
+      data: { assigned_to: null }
+    });
+    const response = await api.post(`/api/bugs/bugs/${bugId}/assign`, {});
+      setBugs(bugs.map((bug) =>
+        String(bug._id) === String(bugId) ? { ...response.data.data, assigned_to: { _id: null, ...response.data.data.assigned_to } } : bug
+      ));
+      toast.success(response.data.message || 'Bug assigned successfully');
+  } catch (error) {
+    console.error('Error assigning bug:', error);
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+      const errorMsg = error.response.data?.message || error.response.data?.error || 'Failed to assign bug';
+      toast.error(errorMsg);
+    } else {
+      toast.error('Network error while assigning bug');
+    }
+  }
+
+
+};
+
+// Handle bug resolution
+const handleSolveBug = async (bugId) => {
+  try {
+    console.log('Resolving bug:', {
+      url: `/api/bugs/bugs/${bugId}/solve`,
+    });
+    const response = await api.post(`/api/bugs/bugs/${bugId}/solve`, {});
+      setBugs(bugs.map(bug =>
+        String(bug._id) === String(bugId) ? {
+          ...bug,
+          status: response.data.data.status,
+          closure_date: response.data.data.closure_date,
+          updated_at: response.data.data.updated_at
+        } : bug
+      ));
+
+   
+    toast.success(response.data.message || 'Bug resolved successfully');
+  } catch (error) {
+    console.error('Error resolving bug:', error);
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+      const errorMsg = error.response.data?.message || error.response.data?.error || 'Failed to resolve bug';
+      toast.error(errorMsg);
+    } else {
+      toast.error('Network error while resolving bug');
+    }
+  }
+};
+
+
   const createHistoryEntry = async (action, taskId, description) => {
     try {
       await api.post(`/api/projects/${projectId}/history`, {
@@ -347,6 +534,18 @@ const handleUpdateTask = async (taskId, taskData) => {
     }
   };
 
+
+   // Open bug modal for creating or editing
+   const openBugModal = (bug = null, mode = 'edit') => {
+    setCurrentBug(bug ? { ...bug, mode } : null);
+    setShowBugModal(true);
+  };
+
+  // Open bug details modal for viewing
+  const openBugDetailsModal = (bug) => {
+    setCurrentBug(bug);
+    setShowBugDetailsModal(true);
+  };
   // Open task modal for creating or editing
   const openTaskModal = (task = null) => {
     setCurrentTask(task);
@@ -406,6 +605,9 @@ const handleUpdateTask = async (taskId, taskData) => {
       case 'IN_PROGRESS': return 'bg-primary text-primary-content';
       case 'REVIEW': return 'bg-warning text-warning-content';
       case 'DONE': return 'bg-success text-success-content';
+      case 'OPEN': return 'bg-error text-error-content';
+      case 'RESOLVED': return 'bg-success text-success-content';
+      case 'CLOSED': return 'bg-base-300 text-base-content';
       default: return 'bg-base-300';
     }
   };
@@ -544,6 +746,29 @@ const handleUpdateTask = async (taskId, taskData) => {
                   </div>
                 </div>
               </div>
+              <div className="stats bg-base-100 shadow-md border border-base-200">
+                <div className="stat">
+                  <div className="stat-figure text-error">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M12 4.5c-1.1 0-2 .9-2 2v1.5H6v2h12v-2h-4V6.5c0-1.1-.9-2-2-2zm-6 7v2h12v-2H6zm0 4v2h12v-2H6zM4 6h2v2H4V6zm14 0h2v2h-2V6z"
+                      />
+                    </svg>
+                  </div>
+                  <div className="stat-title font-medium text-base-content/90">Total Bugs</div>
+                  <div className="stat-value text-error">{openBugsCount}</div>
+                </div>
+              </div>
+              
               
               <div className="stats bg-base-100 shadow-md border border-base-200">
                 <div className="stat">
@@ -710,7 +935,230 @@ const handleUpdateTask = async (taskId, taskData) => {
           <ProjectHistory projectId={project._id} />
         </div>
       )}
+
+       {/* Bugs Section */}
+     <div className="mt-8">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+        
+         
+          </div>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="btn bg-error text-error-content btn-sm md:btn-md gap-2"
+            onClick={() => openBugModal()}
+            disabled={isMember && !isOwner}
+            title={isMember && !isOwner ? 'Only owners can report bugs' : 'Report a new bug'}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Report Bug
+          </motion.button>
+        </div>
+        {bugs.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {bugs.map((bug) => {
+              const isAssignedToCurrentUser =
+                bug.assigned_to?._id === currentUserId || bug.assigned_to === currentUserId;
+              if (bug.status === 'IN_PROGRESS' && !bug.assigned_by) {
+                console.warn(`Bug ${bug._id} is IN_PROGRESS but has no assigned_by field`);
+              }
+              return (
+                <motion.div
+                  key={bug._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className={`card bg-base-100 border border-base-200 rounded-xl overflow-hidden
+                    ${bug.status === 'OPEN' ? 'shadow-[0_6px_12px_-2px_rgba(239,68,68,0.5)]' : 'shadow-md'} 
+                    hover:shadow-xl transition-shadow duration-300`}
+                >
+                  <div className="card-body p-5">
+                    {/* Header */}
+                    <div className="flex justify-between items-start gap-2">
+                      <h3
+                        className="card-title text-xl font-semibold text-base-content line-clamp-2"
+                        title={bug.title}
+                      >
+                        {bug.title || 'N/A'}
+                      </h3>
+                      <span
+                        className={`badge ${getStatusColor(bug.status)} badge-md font-medium px-3 py-2`}
+                      >
+                        {bug.status || 'N/A'}
+                      </span>
+                    </div>
+
+                        {/* Metadata Grid */}
+                        <div className="grid grid-cols-1 gap-3 mt-4">
+                      <div className="flex items-center gap-2 text-sm text-base-content/80">
+                        <svg
+                          className="w-4 h-4 text-primary"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                          />
+                        </svg>
+                        <span>
+                          <span className="font-medium">Reported By:</span>{' '}
+                          {bug.reported_by?.name || bug.reported_by?.email || 'N/A'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-base-content/80">
+                        <svg
+                          className="w-4 h-4 text-primary"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"
+                          />
+                        </svg>
+                        <span>
+                          <span className="font-medium">Assigned To:</span>{' '}
+                          {bug.assigned_to?.name || bug.assigned_to?.email || 'Unassigned'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-base-content/80">
+                      
+                        
+                      </div>
+                    </div>
+                    {/* Actions */}
+                    <div className="card-actions flex flex-wrap justify-end gap-2 mt-5">
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="btn btn-square btn-sm btn-ghost text-primary"
+                        onClick={() => openBugDetailsModal(bug)}
+                        title="View bug details"
+                        aria-label="View bug details"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                          />
+                        </svg>
+                      </motion.button>
+                      <button
+                        onClick={() => handleDeleteBug(bug._id)}
+                        className="btn btn-square btn-sm btn-ghost text-error"
+                        title="Supprimer"
+                        aria-label="Delete bug"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                      </button>
+                      <div className="flex gap-2">
+                      {bug.status !== 'IN_PROGRESS' && bug.status !== 'RESOLVED' && bug.status !== 'CLOSED' && (
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="btn btn-sm btn-primary"
+                            onClick={() => handleAssignBug(bug._id)}
+                         
+                            title={
+                              isOwner
+                                ? 'Owners cannot assign bugs'
+                                : isAssignedToCurrentUser
+                                ? 'Already assigned to you'
+                                : 'Assign to me'
+                            }
+                            aria-label="Assign bug to me"
+                          >
+                            Assign to Me
+                          </motion.button>
+                        )}
+
+                          {bug.status !== 'OPEN' && bug.status !== 'CLOSED' && bug.status !== 'RESOLVED' && (
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          className="btn btn-sm btn-success"
+                          onClick={() => handleSolveBug(bug._id)}
+                          title="Mark bug as resolved"
+                          aria-label="Mark bug as resolved"
+                        >
+                          Solve
+                        </motion.button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <svg
+              className="w-16 h-16 mx-auto text-base-content/50"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M9 12l2 2 4-4m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <p className="text-lg text-base-content/70 mt-4">No bugs reported yet.</p>
+          </div>
+        )}
+      </div>
       
+
+
       {/* Resources Section */}
       <div className="mt-8">
         <div className="flex items-center justify-between mb-4">
@@ -731,6 +1179,40 @@ const handleUpdateTask = async (taskId, taskData) => {
           onEditResource={openResourceModal}
         />
       </div>
+
+       {/* Bug Modal */}
+       <AnimatePresence>
+        {showBugModal && (
+          <BugModal
+            isOpen={showBugModal}
+            onClose={() => {
+              setShowBugModal(false);
+              setCurrentBug(null);
+            }}
+            bug={currentBug}
+            projectId={projectId}
+            onCreateBug={handleCreateBug}
+            onUpdateBug={handleUpdateBug}
+            modalRef={modalRef}
+            isViewMode={currentBug?.mode === 'view'} // Pass view mode to BugModal
+            isEditMode={currentBug?.mode === 'edit'} // Pass edit mode to BugModal
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Bug Details Modal (for viewing) */}
+  <AnimatePresence>
+    {showBugDetailsModal && (
+      <BugDetailsModal
+        isOpen={showBugDetailsModal}
+        onClose={() => {
+          setShowBugDetailsModal(false);
+          setCurrentBug(null);
+        }}
+        bug={currentBug}
+      />
+    )}
+  </AnimatePresence>
       
       {/* Task Modal */}
       <AnimatePresence>
