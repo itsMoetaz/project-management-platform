@@ -54,8 +54,6 @@ Planify is a comprehensive full-stack project management platform designed to st
 
 ### AI & Machine Learning
 - **Python** - ML infrastructure
-- **TensorFlow** - Neural network framework
-- **Pandas** - Data manipulation and analysis
 
 ### DevOps & Infrastructure
 - **Docker** - Containerization
@@ -154,11 +152,6 @@ docker-compose up
 # Rebuild containers when needed
 docker-compose up --build
 ```
-
-## 📝 API Documentation
-
-API documentation is available at `http://localhost:5000/api-docs` when the server is running.
-
 
 ## 📄 License
 
