@@ -44,7 +44,6 @@ Planify is a comprehensive full-stack project management platform designed to st
 ### Frontend
 - **React.js** - Component-based UI library
 - **Tailwind CSS** - Utility-first CSS framework
-- **Redux** - State management
 - **Chart.js** - Data visualization
 
 ### Backend
@@ -61,8 +60,7 @@ Planify is a comprehensive full-stack project management platform designed to st
 ### DevOps & Infrastructure
 - **Docker** - Containerization
 - **GitHub Actions** - CI/CD pipeline
-- **AWS/Azure** - Cloud hosting
-
+  
 ## 📂 Project Structure
 
 ```
@@ -85,15 +83,8 @@ planify/
 │   ├── package.json        # Dependencies
 │   └── README.md           # Backend documentation
 │
-├── ai/                     # AI modules
-│   ├── models/             # ML model definitions
-│   ├── data/               # Training datasets
-│   ├── notebooks/          # Jupyter notebooks
-│   ├── scripts/            # Training scripts
-│   ├── requirements.txt    # Python dependencies
-│   └── README.md           # AI documentation
-│
 ├── docker-compose.yml      # Docker orchestration
+├── jenkinsfile             # Jenkins
 ├── .github/                # GitHub configuration
 ├── .gitignore              # Git ignore rules
 ├── LICENSE                 # License information
@@ -132,10 +123,6 @@ planify/
    # Frontend dependencies
    cd ../client
    npm install
-
-   # AI module dependencies (optional)
-   cd ../ai
-   pip install -r requirements.txt
    ```
 
 ### Running the Application
@@ -145,18 +132,18 @@ planify/
 1. **Start the backend server**
    ```bash
    cd server
-   npm run dev
+   npm start
    ```
 
 2. **Start the frontend client**
    ```bash
    cd client
-   npm start
+   npm run dev
    ```
 
 3. **Access the application**
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:5000/api
+   - Frontend: http://localhost:5173
+   - Backend API: http://localhost:3000
 
 #### Using Docker
 
