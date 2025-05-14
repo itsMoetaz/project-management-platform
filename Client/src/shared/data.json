@@ -1,0 +1,283 @@
+[
+  {
+    "id": "1",
+    "name": "Sara Ben Romdhane",
+    "title": "Software Engineer | Full Stack Developer",
+    "location": "Tunis, Tunisia",
+    "summary": "Passionate software developer with 4+ years of experience in building scalable web applications using React and Spring Boot.",
+    "experience": [
+      {
+        "company": "Vermeg",
+        "title": "Senior Full Stack Developer",
+        "startDate": "2021-06",
+        "endDate": "Present",
+        "description": "Lead the development of a financial dashboard using React and microservices architecture."
+      },
+      {
+        "company": "Sofrecom",
+        "title": "Software Developer",
+        "startDate": "2019-04",
+        "endDate": "2021-05",
+        "description": "Developed REST APIs and collaborated with frontend teams on UI integration."
+      }
+    ],
+    "education": [
+      {
+        "school": "ESPRIT - Ecole Supérieure Privée d'Ingénierie et de Technologie",
+        "degree": "Master's in Software Engineering",
+        "startDate": "2016",
+        "endDate": "2019"
+      }
+    ],
+    "skills": [
+      "Java",
+      "Spring Boot",
+      "React",
+      "Docker",
+      "Kubernetes",
+      "Git",
+      "SQL"
+    ],
+    "languages": ["French", "English", "Arabic"]
+  },
+  {
+    "id": "2",
+    "name": "Ali Trabelsi",
+    "title": "Data Scientist | AI Engineer",
+    "location": "Sfax, Tunisia",
+    "summary": "Data science enthusiast with a strong background in machine learning, deep learning, and data engineering.",
+    "experience": [
+      {
+        "company": "InstaDeep",
+        "title": "AI Research Engineer",
+        "startDate": "2022-01",
+        "endDate": "Present",
+        "description": "Worked on reinforcement learning models for logistics optimization."
+      },
+      {
+        "company": "BIAT",
+        "title": "Data Analyst Intern",
+        "startDate": "2021-06",
+        "endDate": "2021-09",
+        "description": "Built dashboards to monitor customer satisfaction and banking activity."
+      }
+    ],
+    "education": [
+      {
+        "school": "Institut Supérieur d’Informatique et de Mathématiques de Monastir (ISIMM)",
+        "degree": "Bachelor in Data Science",
+        "startDate": "2017",
+        "endDate": "2020"
+      }
+    ],
+    "skills": [
+      "Python",
+      "TensorFlow",
+      "Pandas",
+      "Scikit-learn",
+      "SQL",
+      "Tableau",
+      "Spark"
+    ],
+    "languages": ["English", "Arabic"]
+  },
+  {
+    "id": "3",
+    "name": "Yasmine Chatti",
+    "title": "UI/UX Designer | Product Designer",
+    "location": "Sousse, Tunisia",
+    "summary": "Creative and user-centered UI/UX designer with 5+ years in designing web and mobile applications.",
+    "experience": [
+      {
+        "company": "Vneuron",
+        "title": "UI/UX Designer",
+        "startDate": "2020-03",
+        "endDate": "Present",
+        "description": "Designed intuitive user interfaces for enterprise KYC compliance platforms."
+      },
+      {
+        "company": "Freelance",
+        "title": "Product Designer",
+        "startDate": "2017-01",
+        "endDate": "2020-01",
+        "description": "Worked with startups on app design, user research, and prototyping."
+      }
+    ],
+    "education": [
+      {
+        "school": "ISAMM",
+        "degree": "Bachelor in Multimedia and Design",
+        "startDate": "2013",
+        "endDate": "2016"
+      }
+    ],
+    "skills": [
+      "Figma",
+      "Adobe XD",
+      "Wireframing",
+      "User Research",
+      "Prototyping",
+      "Design Thinking"
+    ],
+    "languages": ["French", "English"]
+  },
+  {
+    "id": "4",
+    "name": "Hedi Bouzid",
+    "title": "DevOps Engineer | Cloud Architect",
+    "location": "Tunis, Tunisia",
+    "summary": "DevOps engineer with expertise in CI/CD, cloud infrastructure, and containerization.",
+    "experience": [
+      {
+        "company": "Telnet Holding",
+        "title": "DevOps Engineer",
+        "startDate": "2021-08",
+        "endDate": "Present",
+        "description": "Implemented CI/CD pipelines and managed cloud infrastructure on AWS."
+      },
+      {
+        "company": "Talan Tunisie",
+        "title": "Cloud Engineer Intern",
+        "startDate": "2020-06",
+        "endDate": "2020-09",
+        "description": "Assisted in migrating on-premise applications to AWS."
+      }
+    ],
+    "education": [
+      {
+        "school": "ENIT - Ecole Nationale d'Ingénieurs de Tunis",
+        "degree": "Master's in Computer Science",
+        "startDate": "2016",
+        "endDate": "2021"
+      }
+    ],
+    "skills": [
+      "AWS",
+      "Docker",
+      "Kubernetes",
+      "Terraform",
+      "Jenkins",
+      "Ansible"
+    ],
+    "languages": ["French", "English"]
+  },
+  {
+    "id": "5",
+    "name": "Maya Ghribi",
+    "title": "Cybersecurity Analyst | Ethical Hacker",
+    "location": "Tunis, Tunisia",
+    "summary": "Cybersecurity professional with a focus on penetration testing and vulnerability assessment.",
+    "experience": [
+      {
+        "company": "Telnet Holding",
+        "title": "Cybersecurity Analyst",
+        "startDate": "2022-01",
+        "endDate": "Present",
+        "description": "Conducted penetration tests and security audits for various clients."
+      },
+      {
+        "company": "Sofrecom",
+        "title": "Security Intern",
+        "startDate": "2021-06",
+        "endDate": "2021-09",
+        "description": "Assisted in vulnerability assessments and security policy development."
+      }
+    ],
+    "education": [
+      {
+        "school": "Institut Supérieur de Gestion de Tunis (ISG)",
+        "degree": "Master's in Information Security",
+        "startDate": "2017",
+        "endDate": "2020"
+      }
+    ],
+    "skills": [
+      "Kali Linux",
+      "Metasploit",
+      "Burp Suite",
+      "Wireshark",
+      "Nmap",
+      "OWASP",
+      "Python"
+    ],
+    "languages": ["French", "English", "Arabic"]
+  },
+  {
+    "id": "6",
+    "name": "Oussama Khlifi",
+    "title": "Mobile Developer | Flutter Developer",
+    "location": "Sousse, Tunisia",
+    "summary": "Mobile developer with a passion for creating cross-platform applications using Flutter.",
+    "experience": [
+      {
+        "company": "Talan Tunisie",
+        "title": "Mobile Developer",
+        "startDate": "2021-05",
+        "endDate": "Present",
+        "description": "Developed mobile applications using Flutter and integrated REST APIs."
+      },
+      {
+        "company": "Freelance",
+        "title": "Flutter Developer",
+        "startDate": "2019-01",
+        "endDate": "2021-04",
+        "description": "Worked on various mobile projects using Flutter and Firebase."
+      }
+    ],
+    "education": [
+      {
+        "school": "ESPRIT - Ecole Supérieure Privée d'Ingénierie et de Technologie",
+        "degree": "Bachelor in Computer Science",
+        "startDate": "2015",
+        "endDate": "2018"
+      }
+    ],
+    "skills": [
+      "Flutter",
+      "Dart",
+      "Firebase",
+      "REST APIs",
+      "Git"
+    ],
+    "languages": ["French", "English"]
+  },
+  {
+    "id": "7",
+    "name": "Amine Bouzid",
+    "title": "Blockchain Developer | Smart Contract Engineer",
+    "location": "Tunis, Tunisia",
+    "summary": "Blockchain developer with experience in building decentralized applications and smart contracts.",
+    "experience": [
+      {
+        "company": "Vermeg",
+        "title": "Blockchain Developer",
+        "startDate": "2021-09",
+        "endDate": "Present",
+        "description": "Developed smart contracts and decentralized applications on Ethereum."
+      },
+      {
+        "company": "Freelance",
+        "title": "Smart Contract Developer",
+        "startDate": "2019-01",
+        "endDate": "2021-08",
+        "description": "Worked on various blockchain projects, including DeFi and NFTs."
+      }
+    ],
+    "education": [
+      {
+        "school": "ESPRIT - Ecole Supérieure Privée d'Ingénierie et de Technologie",
+        "degree": "Master's in Blockchain Technology",
+        "startDate": "2016",
+        "endDate": "2019"
+      }
+    ],
+    "skills": [
+      "Solidity",
+      "Ethereum",
+      "Web3.js",
+      "Truffle",
+      "IPFS"
+    ],
+    "languages": ["French", "English"]
+  }
+]
