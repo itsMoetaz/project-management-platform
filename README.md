@@ -54,8 +54,6 @@ Planify is a comprehensive full-stack project management platform designed to st
 
 ### AI & Machine Learning
 - **Python** - ML infrastructure
-- **TensorFlow** - Neural network framework
-- **Pandas** - Data manipulation and analysis
 
 ### DevOps & Infrastructure
 - **Docker** - Containerization
@@ -103,7 +101,7 @@ planify/
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/planify.git
+   git clone https://github.com/yourusername/project-management-platform.git
    cd planify
    ```
 
@@ -155,12 +153,7 @@ docker-compose up
 docker-compose up --build
 ```
 
-## 📝 API Documentation
-
-API documentation is available at `http://localhost:5000/api-docs` when the server is running.
-
-
-## 📄 License
+# 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
