@@ -87,9 +87,9 @@ pipeline {
                 }
             }
         }
-    }
-
-    post {
+        
+        
+            post {
         always {
             echo "Cleaning up workspace..."
             cleanWs()
@@ -101,4 +101,7 @@ pipeline {
             echo "❌ Build or deployment failed. Check the logs for details."
         }
     }
+    }
+
+
 }
