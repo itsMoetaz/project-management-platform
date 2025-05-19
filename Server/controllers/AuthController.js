@@ -30,20 +30,21 @@ exports.login = async (req, res) => {
             {expiresIn: process.env.JWT_EXPIRE_TIME}
         );
         res.cookie('token', token, {
-    httpOnly: false, // Allow JS access
-    secure: true,    // For HTTPS
-    sameSite: 'None', // Required for cross-site cookies
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-    path: '/',
-        }).json({ message: "Connexion réussie",
+            httpOnly: false,
+            secure: true,
+            sameSite: 'None',
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            path: '/',
+        }).json({ 
+            message: "Connexion réussie",
+            token: token, // Add this line to include token in response
             user: {
                 _id: user._id,
                 name: user.name,
                 email: user.email,
                 role: user.role,
-                
             }
-         });
+        });
 
     } catch (error) {
         res.status(500).json({ error: "Erreur serveur", details: error });
