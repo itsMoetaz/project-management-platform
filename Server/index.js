@@ -19,7 +19,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(
   cors({
     origin: [
-      "https://project-management-platform-7osu.vercel.app", // Remove trailing slash
+      "https://project-management-platform-awby.vercel.app", // Remove trailing slash
       "http://localhost:5173",
       "http://localhost:3000"
     ],
