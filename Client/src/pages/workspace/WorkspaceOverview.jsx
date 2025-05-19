@@ -49,6 +49,7 @@ const WorkspaceOverview = () => {
   const [resignationLoading, setResignationLoading] = useState(false); // Tracks resignation submission
   const [userResignation, setUserResignation] = useState(null); // Stores current user's resignation
   const [resignationCount, setResignationCount] = useState(0); // Stores number of resignations
+const [commentText, setCommentText] = useState('');
 
   // Effect to initialize data when workspace or user changes
   useEffect(() => {
@@ -101,7 +102,21 @@ const WorkspaceOverview = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showDeleteModal, showInviteModal]);
-
+// Add this useEffect after your other useEffect hooks
+useEffect(() => {
+  console.log("Resignation data changed:", userResignation);
+  
+  // If the resignation data changes and we have valid data, force a re-render
+  if (userResignation && userResignation._id) {
+    // You could trigger any state change here to force re-render
+    // For example:
+    setResignationCount(prev => {
+      // Force a re-render by fetching the current count
+      fetchResignationCount();
+      return prev;
+    });
+  }
+}, [userResignation]);
   // Fetch owner details
   const fetchOwnerDetails = async (ownerId) => {
     setOwnerLoading(true);
@@ -323,12 +338,25 @@ const WorkspaceOverview = () => {
       }
       const payload = {
         ...resignationForm,
+              comment: commentText, // Use the separate comment state
+
         effectiveDate: new Date(resignationForm.effectiveDate).toISOString(),
       };
       console.log('Submitting resignation payload:', payload);
       const response = await api.post('/api/resignations/submit', payload);
-      const resignationData = response.data;
-      setUserResignation(resignationData);
+    // Update both resignation record and count
+    // IMPORTANT: Extract the resignation object from the response
+    // This is the key fix - check if response.data has resignation property
+    if (response.data.resignation) {
+      // Set the actual resignation object, not the wrapper
+      setUserResignation(response.data.resignation);
+    } else {
+      // Fallback in case the API changes
+      setUserResignation(response.data);
+    }
+    
+    // Update resignation count
+    setResignationCount(prevCount => prevCount + 1);
       toast.success('Resignation submitted successfully');
       setShowResignationModal(false);
       setResignationForm({
@@ -667,12 +695,16 @@ const WorkspaceOverview = () => {
               <label className="label">
                 <span className="label-text">Comment</span>
               </label>
-              <textarea
-                className="textarea textarea-bordered w-full"
-                placeholder="Optional comment..."
-                value={resignationForm.comment}
-                onChange={(e) => setResignationForm({ ...resignationForm, comment: e.target.value })}
-              ></textarea>
+<textarea
+  key="resignation-comment-textarea"
+
+  className="textarea textarea-bordered w-full"
+  placeholder="Optional comment..."
+  value={commentText}
+  onChange={(e) => {
+    const newText = e.target.value;
+    setCommentText(newText);
+  }}></textarea>
             </div>
             <div className="flex justify-end gap-3 mt-6">
               <button
@@ -697,27 +729,43 @@ const WorkspaceOverview = () => {
   };
 
   // Display current user's resignation
-  const ResignationDisplay = () => {
-    if (!userResignation) return null;
-    return (
-      <div className="card bg-base-200 shadow-lg mt-6">
-        <div className="card-body">
-          <h2 className="card-title text-xl mb-4">Your Resignation</h2>
-          <div className="space-y-2">
-            <p><strong>Reason:</strong> {userResignation.reason}</p>
-            <p><strong>Effective Date:</strong> {formatDate(userResignation.effectiveDate)}</p>
-            <p><strong>Comment:</strong> {userResignation.comment || 'N/A'}</p>
-            <button
-              onClick={() => setUserResignation(null)}
-              className="btn btn-error btn-sm mt-4"
-            >
-              Clear
-            </button>
-          </div>
+// Updated ResignationDisplay component with key
+const ResignationDisplay = () => {
+  console.log("Rendering ResignationDisplay with data:", userResignation);
+  
+  if (!userResignation) return null;
+  
+  const handleCancelResignation = async () => {
+    try {
+      await api.delete(`/api/resignations/${userResignation._id}`);
+      setUserResignation(null);
+      setResignationCount(prevCount => Math.max(0, prevCount - 1));
+      toast.success('Resignation canceled successfully');
+    } catch (error) {
+      console.error('Error canceling resignation:', error);
+      toast.error('Failed to cancel resignation');
+    }
+  };
+
+  return (
+    <div className="card bg-base-200 shadow-lg mt-6">
+      <div className="card-body">
+        <h2 className="card-title text-xl mb-4">Your Resignation</h2>
+        <div className="space-y-2">
+          <p><strong>Reason:</strong> {userResignation.reason}</p>
+          <p><strong>Effective Date:</strong> {formatDate(userResignation.effectiveDate)}</p>
+          <p><strong>Comment:</strong> {userResignation.comment || 'N/A'}</p>
+          <button
+            onClick={handleCancelResignation}
+            className="btn btn-error btn-sm mt-4"
+          >
+            Cancel Resignation
+          </button>
         </div>
       </div>
-    );
-  };
+    </div>
+  );
+};
 
   // Main UI
   return (
@@ -1085,8 +1133,9 @@ const WorkspaceOverview = () => {
             </p>
           </div>
         </div>
-        <ResignationDisplay />
-        {workspace && (
+{userResignation && (
+  <ResignationDisplay key={userResignation._id || 'resignation-' + Date.now()} />
+)}        {workspace && (
           <ChatBubble
             workspaceId={workspace._id}
             workspaceName={workspace.name}

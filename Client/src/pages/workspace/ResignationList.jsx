@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useOutletContext } from 'react-router-dom';
 import api from '../../utils/Api';
@@ -257,6 +256,7 @@ const ResignationList = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [currentProfile, setCurrentProfile] = useState(null);
+  const [refreshTimestamp, setRefreshTimestamp] = useState(Date.now());
 
   // Fetch all resignations for the workspace
   useEffect(() => {
@@ -264,7 +264,6 @@ const ResignationList = () => {
       try {
         const response = await api.get('/api/resignations', {
           params: {
-            userId: user?._id,
             workspaceId: workspaceId
           }
         });
@@ -278,7 +277,7 @@ const ResignationList = () => {
     };
 
     fetchResignations();
-  }, [workspaceId]);
+  }, [workspaceId, refreshTimestamp]); // Add refreshTimestamp here
 
   // Handle status update
   const handleUpdateStatus = async () => {
@@ -286,17 +285,30 @@ const ResignationList = () => {
 
     try {
       setIsUpdating(true);
-      const response = await api.put(`/api/resignations/${currentResignation._id}/status`, { status });
+      console.log('Updating resignation status:', { id: currentResignation._id, status });
 
-      if (response.data) {
-        setResignations(resignations.map(res =>
-          res._id === currentResignation._id ? response.data : res
-        ));
-        toast.success('Status updated successfully');
-        setShowUpdateModal(false);
-      }
+      const response = await api.put(`/api/resignations/${currentResignation._id}/status`, { status });
+      console.log('Update response:', response.data);
+
+      // Optimistic update to local state first
+      setResignations(prevResignations =>
+        prevResignations.map(res => {
+          if (res._id === currentResignation._id) {
+            return { ...res, status };
+          }
+          return res;
+        })
+      );
+
+      // Close modal
+      setShowUpdateModal(false);
+
+      // Force a complete refresh of data from the server
+      setRefreshTimestamp(Date.now());
+
+      toast.success('Status updated successfully');
     } catch (error) {
-      console.error('Error updating status:', error);
+      console.error('Error updating status:', error.response?.data || error.message);
       toast.error(error.response?.data?.message || 'Failed to update status');
     } finally {
       setIsUpdating(false);
@@ -329,15 +341,15 @@ const ResignationList = () => {
 
   // Handle view profile for resignations (find similar profile)
   const handleViewProfile = (resignation) => {
-    console.log('Resignation userId:', resignation.userId);
-    console.log('Resignation userId.name:', resignation.userId?.name);
-    console.log('Resignation userId.id:', resignation.userId?.id);
-    console.log('Profile names:', profiles.map(p => p.name));
-    console.log('Profile ids:', profiles.map(p => p.id));
+    console.log('Viewing profile for:', resignation.userId?.name);
 
     if (!resignation.userId) {
-      toast.error('Employee data is missing');
-      setCurrentProfile({ name: 'Unknown', title: 'N/A', location: 'N/A', summary: 'No profile data available', skills: [], experience: [], education: [], languages: [] });
+      // Even if user ID is missing, show a random profile
+      const randomProfile = profiles[Math.floor(Math.random() * profiles.length)];
+      setCurrentProfile({
+        ...randomProfile,
+        note: "Random profile shown - employee data was missing"
+      });
       setShowProfileModal(true);
       return;
     }
@@ -359,11 +371,16 @@ const ResignationList = () => {
       );
     }
 
-    console.log('Employee profile:', employeeProfile);
-
+    // If still no match, just pick a random profile
     if (!employeeProfile) {
-      toast.error('Employee profile not found');
-      setCurrentProfile({ name: resignation.userId?.name || 'Unknown', title: 'N/A', location: 'N/A', summary: 'No profile data available', skills: [], experience: [], education: [], languages: [] });
+      // Select a random profile as fallback
+      const randomProfile = profiles[Math.floor(Math.random() * profiles.length)];
+      console.log('No match found, using random profile:', randomProfile.name);
+
+      setCurrentProfile({
+        ...randomProfile,
+        note: `No exact match found for ${resignation.userId?.name || 'Unknown User'}. Showing a random profile.`
+      });
       setShowProfileModal(true);
       return;
     }
@@ -371,23 +388,17 @@ const ResignationList = () => {
     // Find similar profile based on skills
     const similarProfile = findSimilarProfile(employeeProfile, profiles);
 
-    console.log('Similar profile:', similarProfile);
-
     if (similarProfile) {
       setCurrentProfile(similarProfile);
       setShowProfileModal(true);
     } else {
-      toast.error('No similar profile found');
+      // If no similar profile, show any profile except the employee's own
+      const otherProfiles = profiles.filter(p => p.id !== employeeProfile.id);
+      const randomProfile = otherProfiles[Math.floor(Math.random() * otherProfiles.length)];
+
       setCurrentProfile({
-        name: 'N/A',
-        title: 'N/A',
-        location: 'N/A',
-        summary: `No profile with similar skills to ${employeeProfile.name} found.`,
-        skills: [],
-        experience: [],
-        education: [],
-        languages: [],
-        commonSkills: []
+        ...randomProfile,
+        note: `No profile with similar skills to ${employeeProfile.name} found. Showing a random profile.`
       });
       setShowProfileModal(true);
     }
@@ -437,7 +448,7 @@ const ResignationList = () => {
       {/* Update Status Modal */}
       {showUpdateModal && currentResignation && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
+          <div className="bg-slate-700 rounded-lg shadow-xl p-6 max-w-md w-full">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-bold">Update Resignation Status</h3>
               <button
@@ -533,10 +544,10 @@ const ResignationList = () => {
 
       {/* Profile Modal */}
       {showProfileModal && currentProfile && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold">
+  <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-2 sm:p-4">
+    <div className="bg-slate-700 rounded-lg shadow-xl p-4 w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <div className="flex justify-between items-center mb-3 sticky top-0 bg-slate-700 py-2">
+        <h3 className="text-lg font-bold">
                 {currentProfile.commonSkills ? 'Similar Employee Profile' : 'Employee Profile'}
               </h3>
               <button
@@ -645,7 +656,7 @@ const ResignationList = () => {
             </thead>
             <tbody>
               {resignations.map((resignation) => (
-                <tr key={resignation._id}>
+                <tr key={`${resignation._id}-${resignation.status}-${Date.now()}`}>
                   <td>
                     <div className="flex items-center space-x-3">
                       <div className="avatar placeholder">

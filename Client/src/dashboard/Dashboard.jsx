@@ -61,6 +61,19 @@ const Dashboard = () => {
 
     // Function to predict future registrations
     const predictFutureRegistrations = (data, daysToPredict = 7) => {
+        // Check if data is empty or undefined
+        if (!data || data.length === 0) {
+            // Return empty array or some default placeholder data
+            return Array(daysToPredict).fill().map((_, i) => {
+                const date = new Date();
+                date.setDate(date.getDate() + i + 1);
+                return {
+                    date: date.toISOString().split('T')[0],
+                    registrations: 0 // Default value
+                };
+            });
+        }
+
         // Calculate average registrations from the last 7 days
         const average = data.reduce((acc, day) => acc + day.registrations, 0) / data.length;
 
@@ -83,6 +96,19 @@ const Dashboard = () => {
 
     // Function to predict future monthly registrations
     const predictFutureMonthlyRegistrations = (data, monthsToPredict = 6) => {
+        // Check if data is empty or undefined
+        if (!data || data.length === 0) {
+            // Return empty array or default data
+            return Array(monthsToPredict).fill().map((_, i) => {
+                const date = new Date();
+                date.setMonth(date.getMonth() + i + 1);
+                return {
+                    month: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`,
+                    registrations: 0 // Default value
+                };
+            });
+        }
+
         // Step 1: Group data by month (YYYY-MM)
         const monthlySums = {};
         data.forEach(item => {
@@ -464,7 +490,7 @@ const Dashboard = () => {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Chargement du tableau de bord...
+                Loading dashboard...
             </div>
         </div>
     );
@@ -473,7 +499,7 @@ const Dashboard = () => {
     const taskStatusChart = {
         labels: taskStatusDistribution.map(status => status.name),
         datasets: [{
-            label: 'Répartition des statuts des tâches',
+            label: 'Task Status Distribution',
             data: taskStatusDistribution.map(status => status.count),
             backgroundColor: chartColors.status,
             borderColor: chartColors.status,
@@ -485,7 +511,7 @@ const Dashboard = () => {
         labels: taskDeadlineVsCompletion.map(item => item.taskName),
         datasets: [
             {
-                label: 'Pourcentage de complétion',
+                label: 'Completion Percentage',
                 data: taskDeadlineVsCompletion.map(item => item.deadlineCompletionPercentage),
                 backgroundColor: chartColors.primary[0],
                 borderColor: chartColors.primary[0],
@@ -497,7 +523,7 @@ const Dashboard = () => {
     const userStatusChart = {
         labels: userStatusDistribution.map(status => status.status),
         datasets: [{
-            label: 'Répartition des statuts utilisateurs',
+            label: 'User Status Distribution',
             data: userStatusDistribution.map(status => status.count),
             backgroundColor: [chartColors.info[0], chartColors.warning[0]],
             borderColor: [chartColors.info[0], chartColors.warning[0]],
@@ -508,7 +534,7 @@ const Dashboard = () => {
     const workspaceProgressChart = {
         labels: workspaceProgress.map(workspace => workspace.workspaceName),
         datasets: [{
-            label: 'Tâches terminées par espace de travail',
+            label: 'Completed Tasks by Workspace',
             data: workspaceProgress.map(workspace => workspace.completedTasks),
             backgroundColor: chartColors.success[0],
             borderColor: chartColors.success[0],
@@ -520,14 +546,14 @@ const Dashboard = () => {
         labels: taskDistributionByUser.map(user => user.userName),
         datasets: [
             {
-                label: 'Tâches en cours',
+                label: 'Tasks in Progress',
                 data: taskDistributionByUser.map(user => user.tasksInProgress),
                 backgroundColor: chartColors.warning[0],
                 borderColor: chartColors.warning[0],
                 borderWidth: 1,
             },
             {
-                label: 'Tâches terminées',
+                label: 'Completed Tasks',
                 data: taskDistributionByUser.map(user => user.tasksCompleted),
                 backgroundColor: chartColors.success[0],
                 borderColor: chartColors.success[0],
@@ -540,7 +566,7 @@ const Dashboard = () => {
         labels: taskTrendOverTime.map(item => item.date),
         datasets: [
             {
-                label: 'Tâches terminées',
+                label: 'Completed Tasks',
                 data: taskTrendOverTime.map(item => item.completedTasks),
                 backgroundColor: 'rgba(54, 162, 235, 0.2)',
                 borderColor: chartColors.success[0],
@@ -549,7 +575,7 @@ const Dashboard = () => {
                 tension: 0.4,
             },
             {
-                label: 'Tâches en cours',
+                label: 'Tasks in Progress',
                 data: taskTrendOverTime.map(item => item.inProgressTasks),
                 backgroundColor: 'rgba(255, 206, 86, 0.2)',
                 borderColor: chartColors.warning[0],
@@ -564,7 +590,7 @@ const Dashboard = () => {
     const teamSkillsChart = {
         labels: teamSkillsDistribution.map(skill => skill.skillName),
         datasets: [{
-            label: 'Nombre d\'utilisateurs',
+            label: 'Number of Users',
             data: teamSkillsDistribution.map(skill => skill.userCount),
             backgroundColor: chartColors.primary,
             borderColor: chartColors.primary.map(color => color.replace('0.8', '1')),
@@ -575,7 +601,7 @@ const Dashboard = () => {
     const certificationsChart = {
         labels: certificationStats.topCertifications?.map(cert => cert.name) || [],
         datasets: [{
-            label: 'Nombre de certifications',
+            label: 'Number of Certifications',
             data: certificationStats.topCertifications?.map(cert => cert.count) || [],
             backgroundColor: chartColors.info,
             borderColor: chartColors.info.map(color => color.replace('0.8', '1')),
@@ -586,7 +612,7 @@ const Dashboard = () => {
     const ressourceTypeChart = {
         labels: ressourceUtilization.ressourcesByType?.map(item => item.type) || [],
         datasets: [{
-            label: 'Ressources par type',
+            label: 'Resources by Type',
             data: ressourceUtilization.ressourcesByType?.map(item => item.count) || [],
             backgroundColor: chartColors.status,
             borderColor: chartColors.status.map(color => color.replace('0.8', '1')),
@@ -597,7 +623,7 @@ const Dashboard = () => {
     const notificationsChart = {
         labels: notificationStats.notificationsByType?.map(item => item.type) || [],
         datasets: [{
-            label: 'Notifications par type',
+            label: 'Notifications by Type',
             data: notificationStats.notificationsByType?.map(item => item.count) || [],
             backgroundColor: notificationStats.notificationsByType?.map(item => item.color) || chartColors.status,
             borderColor: notificationStats.notificationsByType?.map(item => item.color) || chartColors.status,
@@ -608,7 +634,7 @@ const Dashboard = () => {
     const teamExperienceChart = {
         labels: teamExperienceStats.experienceLevels?.map(item => item.level) || [],
         datasets: [{
-            label: 'Répartition de l\'expérience',
+            label: 'Experience Distribution',
             data: teamExperienceStats.experienceLevels?.map(item => item.count) || [],
             backgroundColor: chartColors.accent,
             borderColor: chartColors.accent.map(color => color.replace('0.8', '1')),
@@ -620,7 +646,7 @@ const Dashboard = () => {
     const userRoleChart = {
         labels: userRoleDistribution.map(item => item.role),
         datasets: [{
-            label: 'Nombre d\'utilisateurs',
+            label: 'Number of Users',
             data: userRoleDistribution.map(item => item.count),
             backgroundColor: chartColors.status,
             borderColor: chartColors.status,
@@ -631,7 +657,7 @@ const Dashboard = () => {
     const notificationTypesChart = {
         labels: notificationTypes.map(item => item.type),
         datasets: [{
-            label: 'Notifications par type',
+            label: 'Notifications by Type',
             data: notificationTypes.map(item => item.count),
             backgroundColor: notificationTypes.map(item => item.color),
             borderColor: notificationTypes.map(item => item.color),
@@ -642,7 +668,7 @@ const Dashboard = () => {
     const registrationTrendChart = {
         labels: registrationTrend.map(item => item.date),
         datasets: [{
-            label: 'Nouvelles inscriptions',
+            label: 'New Registrations',
             data: registrationTrend.map(item => item.registrations),
             backgroundColor: 'rgba(94, 114, 228, 0.2)',
             borderColor: chartColors.primary[0],
@@ -655,7 +681,7 @@ const Dashboard = () => {
     const futureRegistrationChart = {
         labels: predictFutureRegistrations(registrationTrend).map(item => item.date),
         datasets: [{
-            label: 'Prévisions des inscriptions',
+            label: 'Registration Forecasts',
             data: predictFutureRegistrations(registrationTrend).map(item => item.registrations),
             backgroundColor: 'rgba(255, 99, 132, 0.2)',
             borderColor: chartColors.secondary[0],
@@ -673,7 +699,7 @@ const Dashboard = () => {
         labels: allTrendData.map(item => item.date),
         datasets: [
             {
-                label: 'Inscriptions réelles',
+                label: 'Actual Registrations',
                 data: registrationTrend.map(item => item.registrations),
                 borderColor: chartColors.primary[0],
                 backgroundColor: 'rgba(94, 114, 228, 0.2)',
@@ -682,7 +708,7 @@ const Dashboard = () => {
                 tension: 0.4,
             },
             {
-                label: 'Prévisions',
+                label: 'Forecasts',
                 data: [...Array(registrationTrend.length).fill(null), ...predictedData.map(item => item.registrations)],
                 borderColor: 'rgba(0, 230, 118, 1)',
                 borderDash: [5, 5],
@@ -717,7 +743,7 @@ const Dashboard = () => {
         labels: allMonthlyData.map(item => item.month),
         datasets: [
             {
-                label: 'Inscriptions mensuelles réelles',
+                label: 'Actual Monthly Registrations',
                 data: formattedCurrentMonthlyData.map(item => item.registrations),
                 borderColor: chartColors.primary[0],
                 backgroundColor: 'rgba(94, 114, 228, 0.2)',
@@ -726,7 +752,7 @@ const Dashboard = () => {
                 tension: 0.4,
             },
             {
-                label: 'Prévisions mensuelles',
+                label: 'Monthly Forecasts',
                 data: [...Array(formattedCurrentMonthlyData.length).fill(null), ...monthlyData.map(item => item.registrations)],
                 borderColor: 'rgba(255, 99, 132, 1)',
                 borderDash: [5, 5],
@@ -743,29 +769,29 @@ const Dashboard = () => {
             <aside className="w-64 bg-slate-900 text-white shadow-md min-h-screen p-5 flex flex-col">
                 <div className="mb-10">
                     <h2 className="text-2xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">ProjectFlow</h2>
-                    <p className="text-xs text-gray-400">Tableau de Bord Admin</p>
+                    <p className="text-xs text-gray-400">Admin Dashboard</p>
                 </div>
 
                 <nav className="flex-grow">
                     <ul className="space-y-2">
                         <li>
                             <Link to="/dashboard" className="flex items-center p-3 bg-purple-600 text-white rounded-md shadow-md">
-                                <FiHome className="mr-2" /> Tableau de Bord
+                                <FiHome className="mr-2" /> Dashboard
                             </Link>
                         </li>
                         <li>
                             <Link to="/dashboard/listusers" className="flex items-center p-3 hover:bg-purple-600 hover:bg-opacity-50 rounded-md transition-all duration-200">
-                                <FiList className="mr-2" /> Liste des Utilisateurs
+                                <FiList className="mr-2" /> User List
                             </Link>
                         </li>
                         <li>
                             <Link to="/dashboard/AdminProfile" className="flex items-center p-3 hover:bg-purple-600 hover:bg-opacity-50 rounded-md transition-all duration-200">
-                                <FiUser className="mr-2" /> Profil
+                                <FiUser className="mr-2" /> Profile
                             </Link>
                         </li>
                         <li>
                             <Link to="/settings" className="flex items-center p-3 hover:bg-purple-600 hover:bg-opacity-50 rounded-md transition-all duration-200">
-                                <FiSettings className="mr-2" /> Paramètres
+                                <FiSettings className="mr-2" /> Settings
                             </Link>
                         </li>
                     </ul>
@@ -776,7 +802,7 @@ const Dashboard = () => {
                         onClick={handleLogout}
                         className="flex w-full items-center p-3 text-red-400 hover:bg-red-900 hover:bg-opacity-30 rounded-md transition-all duration-200"
                     >
-                        <FiLogOut className="mr-2" /> Déconnexion
+                        <FiLogOut className="mr-2" /> Logout
                     </button>
                 </div>
             </aside>
@@ -786,7 +812,7 @@ const Dashboard = () => {
                 <header className="mb-8">
                     <div className="flex justify-between items-center">
                         <h1 className="text-3xl font-bold text-white bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
-                            Tableau de Bord d'Administration
+                            Administration Dashboard
                         </h1>
                         <div className="flex items-center space-x-4">
                             <div className="bg-slate-800 p-2 rounded-full">
@@ -798,7 +824,7 @@ const Dashboard = () => {
                             </div>
                         </div>
                     </div>
-                    <p className="text-gray-400 mt-1">Vue d'ensemble des projets et utilisateurs</p>
+                    <p className="text-gray-400 mt-1">Overview of projects and users</p>
                 </header>
 
                 {/* Stats Cards - Modern design with icons */}
@@ -806,9 +832,9 @@ const Dashboard = () => {
                     <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl shadow-lg p-6 border border-gray-700 hover:shadow-purple-900/20 hover:border-purple-700/50 transition-all duration-300">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-gray-400 text-sm">Total Projets</p>
+                                <p className="text-gray-400 text-sm">Total Projects</p>
                                 <h3 className="text-3xl font-bold text-white">{projectCount}</h3>
-                                <p className="text-green-500 text-xs mt-1">+ 12.5% ce mois</p>
+                                <p className="text-green-500 text-xs mt-1">+ 12.5% this month</p>
                             </div>
                             <div className="p-3 bg-purple-900/30 rounded-lg">
                                 <FiBarChart2 className="h-6 w-6 text-purple-400" />
@@ -818,9 +844,9 @@ const Dashboard = () => {
                     <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl shadow-lg p-6 border border-gray-700 hover:shadow-blue-900/20 hover:border-blue-700/50 transition-all duration-300">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-gray-400 text-sm">Espaces de Travail</p>
+                                <p className="text-gray-400 text-sm">Workspaces</p>
                                 <h3 className="text-3xl font-bold text-white">{workspaceCount}</h3>
-                                <p className="text-green-500 text-xs mt-1">+ 8.2% ce mois</p>
+                                <p className="text-green-500 text-xs mt-1">+ 8.2% this month</p>
                             </div>
                             <div className="p-3 bg-blue-900/30 rounded-lg">
                                 <FiPieChart className="h-6 w-6 text-blue-400" />
@@ -830,9 +856,9 @@ const Dashboard = () => {
                     <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl shadow-lg p-6 border border-gray-700 hover:shadow-green-900/20 hover:border-green-700/50 transition-all duration-300">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-gray-400 text-sm">Utilisateurs</p>
+                                <p className="text-gray-400 text-sm">Users</p>
                                 <h3 className="text-3xl font-bold text-white">{userCount}</h3>
-                                <p className="text-green-500 text-xs mt-1">+ 5.1% ce mois</p>
+                                <p className="text-green-500 text-xs mt-1">+ 5.1% this month</p>
                             </div>
                             <div className="p-3 bg-green-900/30 rounded-lg">
                                 <FiUser className="h-6 w-6 text-green-400" />
@@ -842,12 +868,12 @@ const Dashboard = () => {
                     <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl shadow-lg p-6 border border-gray-700 hover:shadow-amber-900/20 hover:border-amber-700/50 transition-all duration-300">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-gray-400 text-sm">Tâches</p>
+                                <p className="text-gray-400 text-sm">Tasks</p>
                                 <h3 className="text-3xl font-bold text-white">{dashboardStats.totalTasks}</h3>
                                 <div className="flex items-center space-x-2 mt-1">
-                                    <span className="text-green-500 text-xs">{dashboardStats.completedTasks} terminées</span>
+                                    <span className="text-green-500 text-xs">{dashboardStats.completedTasks} completed</span>
                                     <span className="text-gray-400">·</span>
-                                    <span className="text-amber-500 text-xs">{dashboardStats.pendingTasks} en cours</span>
+                                    <span className="text-amber-500 text-xs">{dashboardStats.pendingTasks} in progress</span>
                                 </div>
                             </div>
                             <div className="p-3 bg-amber-900/30 rounded-lg">
@@ -859,10 +885,10 @@ const Dashboard = () => {
 
                 {/* Graphs Section - Improved design with uniform, more modern cards */}
 
-                {/* Graphs Section - Design amélioré avec des cartes uniformes et plus modernes */}
+                {/* Graphs Section - Improved design with uniform, more modern cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                     <div className="bg-slate-800/60 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-gray-700 hover:shadow-purple-900/10 transition-all duration-300">
-                        <h3 className="text-xl font-semibold text-white mb-4">Répartition des statuts des tâches</h3>
+                        <h3 className="text-xl font-semibold text-white mb-4">Task Status Distribution</h3>
                         <div className="h-64">
                             <Doughnut
                                 data={taskStatusChart}
@@ -870,14 +896,14 @@ const Dashboard = () => {
                                     ...chartOptions,
                                     plugins: {
                                         ...chartOptions.plugins,
-                                        title: { ...chartOptions.plugins.title, text: 'Distribution des statuts' }
+                                        title: { ...chartOptions.plugins.title, text: 'Status Distribution' }
                                     }
                                 }}
                             />
                         </div>
                     </div>
                     <div className="bg-slate-800/60 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-gray-700 hover:shadow-blue-900/10 transition-all duration-300">
-                        <h3 className="text-xl font-semibold text-white mb-4">Tâches par délai vs complétion</h3>
+                        <h3 className="text-xl font-semibold text-white mb-4">Tasks by Deadline vs Completion</h3>
                         <div className="h-64">
                             <Line
                                 data={taskDeadlineVsCompletionChart}
@@ -885,14 +911,14 @@ const Dashboard = () => {
                                     ...chartOptions,
                                     plugins: {
                                         ...chartOptions.plugins,
-                                        title: { ...chartOptions.plugins.title, text: 'Progression des tâches' }
+                                        title: { ...chartOptions.plugins.title, text: 'Task Progress' }
                                     }
                                 }}
                             />
                         </div>
                     </div>
                     <div className="bg-slate-800/60 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-gray-700 hover:shadow-purple-900/10 transition-all duration-300">
-                        <h3 className="text-xl font-semibold text-white mb-4">Répartition des statuts utilisateurs</h3>
+                        <h3 className="text-xl font-semibold text-white mb-4">User Status Distribution</h3>
                         <div className="h-64">
                             <Doughnut
                                 data={userStatusChart}
@@ -900,14 +926,14 @@ const Dashboard = () => {
                                     ...chartOptions,
                                     plugins: {
                                         ...chartOptions.plugins,
-                                        title: { ...chartOptions.plugins.title, text: 'Activité des utilisateurs' }
+                                        title: { ...chartOptions.plugins.title, text: 'User Activity' }
                                     }
                                 }}
                             />
                         </div>
                     </div>
                     <div className="bg-slate-800/60 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-gray-700 hover:shadow-green-900/10 transition-all duration-300">
-                        <h3 className="text-xl font-semibold text-white mb-4">Progression par espace de travail</h3>
+                        <h3 className="text-xl font-semibold text-white mb-4">Workspace Progress</h3>
                         <div className="h-64">
                             <Bar
                                 data={workspaceProgressChart}
@@ -915,14 +941,14 @@ const Dashboard = () => {
                                     ...chartOptions,
                                     plugins: {
                                         ...chartOptions.plugins,
-                                        title: { ...chartOptions.plugins.title, text: 'Tâches terminées par workspace' }
+                                        title: { ...chartOptions.plugins.title, text: 'Completed Tasks by Workspace' }
                                     }
                                 }}
                             />
                         </div>
                     </div>
                     <div className="bg-slate-800/60 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-gray-700 hover:shadow-amber-900/10 transition-all duration-300">
-                        <h3 className="text-xl font-semibold text-white mb-4">Tâches par utilisateur</h3>
+                        <h3 className="text-xl font-semibold text-white mb-4">Tasks by User</h3>
                         <div className="h-64">
                             <Bar
                                 data={taskDistributionByUserChart}
@@ -930,14 +956,14 @@ const Dashboard = () => {
                                     ...chartOptions,
                                     plugins: {
                                         ...chartOptions.plugins,
-                                        title: { ...chartOptions.plugins.title, text: 'Charge de travail par utilisateur' }
+                                        title: { ...chartOptions.plugins.title, text: 'Workload by User' }
                                     }
                                 }}
                             />
                         </div>
                     </div>
                     <div className="bg-slate-800/60 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-gray-700 hover:shadow-cyan-900/10 transition-all duration-300">
-                        <h3 className="text-xl font-semibold text-white mb-4">Tendance des tâches au fil du temps</h3>
+                        <h3 className="text-xl font-semibold text-white mb-4">Task Trend Over Time</h3>
                         <div className="h-64">
                             <Line
                                 data={taskTrendOverTimeChart}
@@ -945,7 +971,7 @@ const Dashboard = () => {
                                     ...chartOptions,
                                     plugins: {
                                         ...chartOptions.plugins,
-                                        title: { ...chartOptions.plugins.title, text: 'Évolution sur la période' }
+                                        title: { ...chartOptions.plugins.title, text: 'Evolution Over Time' }
                                     }
                                 }}
                             />
@@ -953,16 +979,16 @@ const Dashboard = () => {
                     </div>
                 </div>
 
-                {/* Ajout des nouveaux graphiques après les graphiques existants */}
+                {/* Adding new charts after existing charts */}
                 <div className="bg-slate-900/40 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-gray-700 col-span-2 mb-8">
                     <h2 className="text-2xl font-bold text-white mb-6 bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
-                        Analyses Avancées
+                        Advanced Analytics
                     </h2>
                     
-                    {/* Première rangée de graphiques avancés */}
+                    {/* First row of advanced charts */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                         <div className="bg-slate-800/60 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-gray-700 hover:shadow-blue-900/10 transition-all duration-300">
-                            <h3 className="text-xl font-semibold text-white mb-4">Distribution des compétences</h3>
+                            <h3 className="text-xl font-semibold text-white mb-4">Skills Distribution</h3>
                             <div className="h-64">
                                 <Bar
                                     data={teamSkillsChart}
@@ -970,7 +996,7 @@ const Dashboard = () => {
                                         ...chartOptions,
                                         plugins: {
                                             ...chartOptions.plugins,
-                                            title: { ...chartOptions.plugins.title, text: 'Compétences de l\'équipe' }
+                                            title: { ...chartOptions.plugins.title, text: 'Team Skills' }
                                         }
                                     }}
                                 />
@@ -985,14 +1011,14 @@ const Dashboard = () => {
                                         ...chartOptions,
                                         plugins: {
                                             ...chartOptions.plugins,
-                                            title: { ...chartOptions.plugins.title, text: 'Top 5 des certifications' }
+                                            title: { ...chartOptions.plugins.title, text: 'Top 5 Certifications' }
                                         }
                                     }}
                                 />
                             </div>
                         </div>
                         <div className="bg-slate-800/60 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-gray-700 hover:shadow-amber-900/10 transition-all duration-300">
-                            <h3 className="text-xl font-semibold text-white mb-4">Ressources ({ressourceUtilization.totalRessources})</h3>
+                            <h3 className="text-xl font-semibold text-white mb-4">Resources ({ressourceUtilization.totalRessources})</h3>
                             <div className="h-64">
                                 <Doughnut
                                     data={ressourceTypeChart}
@@ -1000,7 +1026,7 @@ const Dashboard = () => {
                                         ...chartOptions,
                                         plugins: {
                                             ...chartOptions.plugins,
-                                            title: { ...chartOptions.plugins.title, text: 'Types de ressources' }
+                                            title: { ...chartOptions.plugins.title, text: 'Resource Types' }
                                         }
                                     }}
                                 />
@@ -1015,7 +1041,7 @@ const Dashboard = () => {
                                         ...chartOptions,
                                         plugins: {
                                             ...chartOptions.plugins,
-                                            title: { ...chartOptions.plugins.title, text: 'Types de notifications' }
+                                            title: { ...chartOptions.plugins.title, text: 'Notification Types' }
                                         }
                                     }}
                                 />
@@ -1023,10 +1049,10 @@ const Dashboard = () => {
                         </div>
                     </div>
                     
-                    {/* Statistiques d'expérience */}
+                    {/* Experience Statistics */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                         <div className="bg-slate-800/60 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-gray-700 hover:shadow-blue-900/10 transition-all duration-300">
-                            <h3 className="text-xl font-semibold text-white mb-4">Expérience de l'équipe</h3>
+                            <h3 className="text-xl font-semibold text-white mb-4">Team Experience</h3>
                             <div className="h-64">
                                 <Bar
                                     data={teamExperienceChart}
@@ -1034,14 +1060,14 @@ const Dashboard = () => {
                                         ...chartOptions,
                                         plugins: {
                                             ...chartOptions.plugins,
-                                            title: { ...chartOptions.plugins.title, text: 'Niveaux d\'expérience' }
+                                            title: { ...chartOptions.plugins.title, text: 'Experience Levels' }
                                         }
                                     }}
                                 />
                             </div>
                         </div>
                         <div className="bg-slate-800/60 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-gray-700 hover:shadow-purple-900/10 transition-all duration-300 col-span-2">
-                            <h3 className="text-xl font-semibold text-white mb-4">Top secteurs d'activité</h3>
+                            <h3 className="text-xl font-semibold text-white mb-4">Top Industries</h3>
                             <div className="space-y-4 mt-4">
                                 {teamExperienceStats.topIndustries?.map((industry, index) => (
                                     <div key={index} className="flex items-center">
@@ -1061,8 +1087,8 @@ const Dashboard = () => {
                             <div className="mt-6 p-4 bg-slate-700/30 rounded-lg">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <p className="text-sm text-gray-400">Moyenne d'années d'expérience</p>
-                                        <p className="text-2xl font-bold text-white">{teamExperienceStats.avgYearsExperience} ans</p>
+                                        <p className="text-sm text-gray-400">Average years of experience</p>
+                                        <p className="text-2xl font-bold text-white">{teamExperienceStats.avgYearsExperience} years</p>
                                     </div>
                                     <div className="h-16 w-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white text-2xl font-bold">
                                         {teamExperienceStats.avgYearsExperience}
@@ -1072,9 +1098,9 @@ const Dashboard = () => {
                         </div>
                     </div>
                     
-                    {/* Ressources récentes */}
+                    {/* Recently Added Resources */}
                     <div className="bg-slate-800/60 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-gray-700 hover:shadow-cyan-900/10 transition-all duration-300 mb-6">
-                        <h3 className="text-xl font-semibold text-white mb-4">Ressources récemment ajoutées</h3>
+                        <h3 className="text-xl font-semibold text-white mb-4">Recently Added Resources</h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             {ressourceUtilization.recentlyAdded?.map((resource, index) => (
                                 <div key={index} className="bg-slate-700/30 rounded-lg p-4 hover:bg-slate-700/50 transition-all duration-300">
@@ -1082,12 +1108,12 @@ const Dashboard = () => {
                                         <div className={`h-8 w-8 rounded-lg mr-2 flex items-center justify-center
                                             ${resource.type === 'Documents' ? 'bg-blue-900/50 text-blue-400' : 
                                              resource.type === 'Images' ? 'bg-green-900/50 text-green-400' :
-                                             resource.type === 'Vidéos' ? 'bg-red-900/50 text-red-400' :
+                                             resource.type === 'Videos' ? 'bg-red-900/50 text-red-400' :
                                              resource.type === 'Audio' ? 'bg-yellow-900/50 text-yellow-400' :
                                              'bg-purple-900/50 text-purple-400'}`}>
                                             {resource.type === 'Documents' ? 'DOC' : 
                                              resource.type === 'Images' ? 'IMG' :
-                                             resource.type === 'Vidéos' ? 'VID' :
+                                             resource.type === 'Videos' ? 'VID' :
                                              resource.type === 'Audio' ? 'AUD' : 'FIC'}
                                         </div>
                                         <div>
@@ -1100,20 +1126,20 @@ const Dashboard = () => {
                         </div>
                     </div>
                     
-                    {/* Statistiques de notifications */}
+                    {/* Notification Statistics */}
                     <div className="bg-slate-800/60 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-gray-700 hover:shadow-amber-900/10 transition-all duration-300">
-                        <h3 className="text-xl font-semibold text-white mb-4">Vue d'ensemble des notifications</h3>
+                        <h3 className="text-xl font-semibold text-white mb-4">Notifications Overview</h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                             <div className="bg-slate-700/30 p-4 rounded-lg">
                                 <h4 className="text-gray-400 mb-1">Total</h4>
                                 <p className="text-3xl font-bold text-white">{notificationStats.totalNotifications}</p>
                             </div>
                             <div className="bg-slate-700/30 p-4 rounded-lg">
-                                <h4 className="text-gray-400 mb-1">Lues</h4>
+                                <h4 className="text-gray-400 mb-1">Read</h4>
                                 <p className="text-3xl font-bold text-green-400">{notificationStats.deliveryStats?.read}</p>
                             </div>
                             <div className="bg-slate-700/30 p-4 rounded-lg">
-                                <h4 className="text-gray-400 mb-1">Non lues</h4>
+                                <h4 className="text-gray-400 mb-1">Unread</h4>
                                 <p className="text-3xl font-bold text-red-400">{notificationStats.deliveryStats?.unread}</p>
                             </div>
                         </div>
@@ -1122,17 +1148,17 @@ const Dashboard = () => {
                             <div className="h-3 bg-red-500 rounded-r-full" style={{ width: `${(notificationStats.deliveryStats?.unread / notificationStats.totalNotifications) * 100}%` }}></div>
                         </div>
                         <div className="flex justify-between mt-1">
-                            <span className="text-xs text-gray-400">{Math.round((notificationStats.deliveryStats?.read / notificationStats.totalNotifications) * 100)}% lues</span>
-                            <span className="text-xs text-gray-400">{Math.round((notificationStats.deliveryStats?.unread / notificationStats.totalNotifications) * 100)}% non lues</span>
+                            <span className="text-xs text-gray-400">{Math.round((notificationStats.deliveryStats?.read / notificationStats.totalNotifications) * 100)}% read</span>
+                            <span className="text-xs text-gray-400">{Math.round((notificationStats.deliveryStats?.unread / notificationStats.totalNotifications) * 100)}% unread</span>
                         </div>
                     </div>
                 </div>
 
-                {/* Section spéciale pour les rapports */}
+                {/* Special Section for Reports */}
                 <div className="bg-slate-800/30 backdrop-blur-sm rounded-xl p-6 mb-8 border border-gray-700">
                     <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
                         <FiActivity className="mr-2 text-purple-400" />
-                        Activité récente
+                        Recent Activity
                     </h2>
                     <div className="space-y-3">
                         {taskProgressByDeadline.slice(0, 5).map((task, index) => (
@@ -1163,20 +1189,20 @@ const Dashboard = () => {
                         ))}
                     </div>
                     <div className="mt-4 text-right">
-                        <button className="text-purple-400 hover:text-purple-300 text-sm font-medium">Voir tous les rapports →</button>
+                        <button className="text-purple-400 hover:text-purple-300 text-sm font-medium">View all reports →</button>
                     </div>
                 </div>
 
-                {/* NOUVELLE SECTION: Informations administratives */}
+                {/* NEW SECTION: Administrative Information */}
                 <div className="bg-slate-900/40 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-gray-700 mb-8">
                     <h2 className="text-2xl font-bold text-white mb-6 bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
-                        Informations Administratives
+                        Administrative Information
                     </h2>
 
-                    {/* Graphiques pour les rôles utilisateurs et types de notifications */}
+                    {/* Charts for user roles and notification types */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                         <div className="bg-slate-800/60 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-gray-700 hover:shadow-blue-900/10 transition-all duration-300">
-                            <h3 className="text-xl font-semibold text-white mb-4">Répartition des rôles utilisateurs</h3>
+                            <h3 className="text-xl font-semibold text-white mb-4">User Role Distribution</h3>
                             <div className="h-64">
                                 <Doughnut
                                     data={userRoleChart}
@@ -1184,14 +1210,14 @@ const Dashboard = () => {
                                         ...chartOptions,
                                         plugins: {
                                             ...chartOptions.plugins,
-                                            title: { ...chartOptions.plugins.title, text: 'Distribution des rôles' }
+                                            title: { ...chartOptions.plugins.title, text: 'Role Distribution' }
                                         }
                                     }}
                                 />
                             </div>
                         </div>
                         <div className="bg-slate-800/60 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-gray-700 hover:shadow-purple-900/10 transition-all duration-300">
-                            <h3 className="text-xl font-semibold text-white mb-4">Types de notifications</h3>
+                            <h3 className="text-xl font-semibold text-white mb-4">Notification Types</h3>
                             <div className="h-64">
                                 <Doughnut
                                     data={notificationTypesChart}
@@ -1199,7 +1225,7 @@ const Dashboard = () => {
                                         ...chartOptions,
                                         plugins: {
                                             ...chartOptions.plugins,
-                                            title: { ...chartOptions.plugins.title, text: 'Distribution par type' }
+                                            title: { ...chartOptions.plugins.title, text: 'Type Distribution' }
                                         }
                                     }}
                                 />
@@ -1207,9 +1233,9 @@ const Dashboard = () => {
                         </div>
                     </div>
 
-                    {/* Tendance des inscriptions */}
+                    {/* Registration Trend */}
                     <div className="bg-slate-800/60 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-gray-700 hover:shadow-green-900/10 transition-all duration-300 mb-8">
-                        <h3 className="text-xl font-semibold text-white mb-4">Tendance des inscriptions</h3>
+                        <h3 className="text-xl font-semibold text-white mb-4">Registration Trend</h3>
                         <div className="h-64">
                             <Line
                                 data={registrationTrendChart}
@@ -1217,16 +1243,16 @@ const Dashboard = () => {
                                     ...chartOptions,
                                     plugins: {
                                         ...chartOptions.plugins,
-                                        title: { ...chartOptions.plugins.title, text: 'Nouvelles inscriptions (7 derniers jours)' }
+                                        title: { ...chartOptions.plugins.title, text: 'New Registrations (Last 7 Days)' }
                                     }
                                 }}
                             />
                         </div>
                     </div>
 
-                    {/* Prévisions des inscriptions */}
+                    {/* Registration Forecasts */}
                     <div className="bg-slate-800/60 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-gray-700 hover:shadow-red-900/10 transition-all duration-300 mb-8">
-                        <h3 className="text-xl font-semibold text-white mb-4">Prévisions des inscriptions</h3>
+                        <h3 className="text-xl font-semibold text-white mb-4">Registration Forecasts</h3>
                         <div className="h-64">
                             <Line
                                 data={futureRegistrationChart}
@@ -1234,16 +1260,16 @@ const Dashboard = () => {
                                     ...chartOptions,
                                     plugins: {
                                         ...chartOptions.plugins,
-                                        title: { ...chartOptions.plugins.title, text: 'Prévisions des inscriptions (7 prochains jours)' }
+                                        title: { ...chartOptions.plugins.title, text: 'Registration Forecasts (Next 7 Days)' }
                                     }
                                 }}
                             />
                         </div>
                     </div>
 
-                    {/* Graphique combiné des inscriptions réelles et prévisions */}
+                    {/* Combined Chart of Actual and Forecasted Registrations */}
                     <div className="bg-slate-800/60 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-gray-700 hover:shadow-green-900/10 transition-all duration-300 mb-8">
-                        <h3 className="text-xl font-semibold text-white mb-4">Inscriptions réelles et prévisions</h3>
+                        <h3 className="text-xl font-semibold text-white mb-4">Actual and Forecasted Registrations</h3>
                         <div className="h-64">
                             <Line
                                 data={registrationPredictionChart}
@@ -1251,16 +1277,16 @@ const Dashboard = () => {
                                     ...chartOptions,
                                     plugins: {
                                         ...chartOptions.plugins,
-                                        title: { ...chartOptions.plugins.title, text: 'Inscriptions réelles et prévisions combinées' }
+                                        title: { ...chartOptions.plugins.title, text: 'Combined Actual and Forecasted Registrations' }
                                     }
                                 }}
                             />
                         </div>
                     </div>
 
-                    {/* Prévisions des inscriptions mensuelles */}
+                    {/* Monthly Registration Forecasts */}
                     <div className="bg-slate-800/60 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-gray-700 hover:shadow-blue-900/10 transition-all duration-300 mb-8">
-                        <h3 className="text-xl font-semibold text-white mb-4">Prévisions des inscriptions mensuelles</h3>
+                        <h3 className="text-xl font-semibold text-white mb-4">Monthly Registration Forecasts</h3>
                         <div className="h-64">
                             <Line
                                 data={monthlyRegistrationPredictionChart}
@@ -1268,24 +1294,24 @@ const Dashboard = () => {
                                     ...chartOptions,
                                     plugins: {
                                         ...chartOptions.plugins,
-                                        title: { ...chartOptions.plugins.title, text: 'Inscriptions mensuelles réelles et prévisions' }
+                                        title: { ...chartOptions.plugins.title, text: 'Actual Monthly Registrations and Forecasts' }
                                     }
                                 }}
                             />
                         </div>
                     </div>
 
-                    {/* Connexions récentes */}
+                    {/* Recent Logins */}
                     <div className="bg-slate-800/60 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-gray-700 hover:shadow-amber-900/10 transition-all duration-300">
-                        <h3 className="text-xl font-semibold text-white mb-4">Connexions récentes</h3>
+                        <h3 className="text-xl font-semibold text-white mb-4">Recent Logins</h3>
                         <div className="overflow-x-auto">
                             <table className="min-w-full bg-slate-800/50 rounded-lg overflow-hidden">
                                 <thead>
                                     <tr className="border-b border-gray-700">
-                                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Utilisateur</th>
+                                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">User</th>
                                         <th className="py-3 px-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Email</th>
-                                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Date de connexion</th>
-                                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Adresse IP</th>
+                                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Login Date</th>
+                                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">IP Address</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-700">
@@ -1296,11 +1322,11 @@ const Dashboard = () => {
                                         
                                         let timeAgo;
                                         if (diffInMinutes < 60) {
-                                            timeAgo = `Il y a ${diffInMinutes} min`;
+                                            timeAgo = `${diffInMinutes} min ago`;
                                         } else if (diffInMinutes < 24 * 60) {
-                                            timeAgo = `Il y a ${Math.floor(diffInMinutes / 60)} h`;
+                                            timeAgo = `${Math.floor(diffInMinutes / 60)} h ago`;
                                         } else {
-                                            timeAgo = `Il y a ${Math.floor(diffInMinutes / (60 * 24))} j`;
+                                            timeAgo = `${Math.floor(diffInMinutes / (60 * 24))} d ago`;
                                         }
                                         
                                         return (
@@ -1329,7 +1355,7 @@ const Dashboard = () => {
 
                 {/* Footer with copyright */}
                 <footer className="text-center text-gray-500 text-xs mt-8">
-                    © 2025 ProjectFlow. Tous droits réservés.
+                    © 2025 ProjectFlow. All rights reserved.
                 </footer>
             </div>
         </div>

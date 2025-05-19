@@ -392,7 +392,7 @@ const handleUpdateTask = async (taskId, taskData) => {
       );
     } catch (error) {
       console.error('Error deleting task:', error);
-      toast.error('Failed to delete task');
+      // toast.error('Failed to delete task');
     }
   };
 
@@ -999,7 +999,7 @@ const handleUpdateTask = async (taskId, taskData) => {
 
                         {/* Metadata Grid */}
                         <div className="grid grid-cols-1 gap-3 mt-4">
-                      <div className="flex items-center gap-2 text-sm text-base-content/80">
+                      <div className="flex items-center gap-2 text-sm text-gray-300">
                         <svg
                           className="w-4 h-4 text-primary"
                           fill="none"
@@ -1019,7 +1019,7 @@ const handleUpdateTask = async (taskId, taskData) => {
                           {bug.reported_by?.name || bug.reported_by?.email || 'N/A'}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-base-content/80">
+                      <div className="flex items-center gap-2 text-sm text-gray-300">
                         <svg
                           className="w-4 h-4 text-primary"
                           fill="none"

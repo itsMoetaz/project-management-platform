@@ -485,16 +485,16 @@ const BugController = {
         console.log("id membre ", req.user._id.toString());
       }
 
-      // Check if the user is a project member
-      const isMember = project.id_teamMembre.some(
-        (member) => member.toString() === req.user._id.toString()
-      );
-      if (!isMember) {
-        return res.status(403).json({
-          success: false,
-          message: "Only project members can assign bugs",
-        });
-      }
+      // // Check if the user is a project member
+      // const isMember = project.id_teamMembre.some(
+      //   (member) => member.toString() === req.user._id.toString()
+      // );
+      // if (!isMember) {
+      //   return res.status(403).json({
+      //     success: false,
+      //     message: "Only project members can assign bugs",
+      //   });
+      // }
 
       // Update the bug
       bug.assigned_to = req.user._id;

@@ -449,7 +449,7 @@ const showToast = (message, type = 'success') => {
             <ul tabIndex={0} className="mt-3 z-[1] p-2 shadow-xl menu menu-sm dropdown-content bg-base-100 rounded-box w-64 border border-base-300">
               <li className="px-4 py-2">
                 <span className="font-bold text-primary">{user.name}</span>
-                <span className="text-sm opacity-75">{user.email}</span>
+                {/* <span className="text-sm opacity-75">{user.email}</span> */}
               </li>
               <div className="divider my-1"></div>
               <li><Link to="/profile" className="flex gap-3 items-center"><i className="fa-solid fa-user"></i> Profile Settings</Link></li>
