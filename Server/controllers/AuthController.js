@@ -30,12 +30,11 @@ exports.login = async (req, res) => {
             {expiresIn: process.env.JWT_EXPIRE_TIME}
         );
         res.cookie('token', token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'Strict',
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-            domain: process.env.COOKIE_DOMAIN || 'localhost',
-            path: '/',
+    httpOnly: false, // Allow JS access
+    secure: true,    // For HTTPS
+    sameSite: 'None', // Required for cross-site cookies
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    path: '/',
         }).json({ message: "Connexion réussie",
             user: {
                 _id: user._id,
