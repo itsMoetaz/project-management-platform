@@ -19,7 +19,8 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(
   cors({
     origin: [
-      "https://project-management-platform-7osu.vercel.app/" || "http://localhost:5173",
+      "https://project-management-platform-7osu.vercel.app", // Remove trailing slash
+      "http://localhost:5173",
       "http://localhost:3000"
     ],
     credentials: true,
