@@ -90,6 +90,8 @@ const useSession = () => {
     try {
       abortControllerRef.current.abort(); // Cancel ongoing auth check
       await api.get('/api/auth/logout');
+      localStorage.clear();
+      sessionStorage.clear();
       setUser(null);
       setIsAuthenticated(false);
       navigate('/login');
