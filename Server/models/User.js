@@ -40,7 +40,7 @@ const userSchema = new mongoose.Schema(
     },
     google_id: {
       type: String,
-      unique: true,
+      sparse: true
     },
     github_id: {
       type: String,
@@ -94,5 +94,8 @@ const userSchema = new mongoose.Schema(
     timestamps: true, 
   }
 );
-
+userSchema.index({ google_id: 1 }, { 
+  unique: true, 
+  partialFilterExpression: { google_id: { $ne: null } } 
+});
 module.exports = mongoose.model('User', userSchema);
