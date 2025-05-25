@@ -64,6 +64,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/bugs', bugRoutes);
 app.use('/api/resignations', resignationRoutes);
+app.use('/api', projectHistoryRoutes);
 // Route pour le matching de profils (non modifiée)
 app.post('/api/match-profiles', async (req, res) => {
   const { workspace_id, task_description } = req.body;
