@@ -110,6 +110,10 @@ exports.logout = (req, res) => {
         domain: process.env.COOKIE_DOMAIN || 'localhost',
         path: '/',
     }).json({ message: 'Déconnexion réussie' });
+        res.status(200).json({ 
+      message: 'Logged out successfully',
+      clearStorage: true // Add this flag
+    });
 };
 
 // exports.protection = async (req, res, next) => {

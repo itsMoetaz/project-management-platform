@@ -10,6 +10,7 @@ const Logout = () => {
         const performLogout = async () => {
             try {
                 await api.post('/api/auth/logout');
+                localStorage.clear();
                 toast.success('Déconnexion réussie');
                 navigate('/login');
             } catch (error) {
