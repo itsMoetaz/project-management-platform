@@ -13,7 +13,13 @@ const initializeSocket = (server) => {
       methods: ["GET", "POST"],
       credentials: true,
       allowedHeaders: ["Content-Type", "Authorization", "Cookie"]
-    }
+    },
+        pingTimeout: 60000,
+    pingInterval: 25000,
+    upgradeTimeout: 30000,
+    maxHttpBufferSize: 1e6,
+    transports: ['websocket', 'polling'],
+    allowEIO3: true
   });
 
   // Debug middleware to log all connections

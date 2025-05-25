@@ -22,17 +22,27 @@ class SocketService {
     }
   
     // Use the correct port
-    const API_URL = 'http://localhost:3000'; // Match the server port
-    console.log("SocketService: Connecting to socket at:", API_URL);
+    const API_URL = import.meta.env.PROD 
+      ? 'https://project-management-platform-fgcp.onrender.com' 
+      : 'http://localhost:3000';    console.log("SocketService: Connecting to socket at:", API_URL);
     
     // Create new socket connection with better debugging
     try {
       this.socket = io(API_URL, {
         withCredentials: true,
+        transports: ['websocket', 'polling'], // Allow fallback to polling
+        upgrade: true,
+        rememberUpgrade: true,
         reconnection: true,
         reconnectionDelay: 1000,
+        reconnectionDelayMax: 5000,
         reconnectionAttempts: 10,
+        timeout: 20000,
+        forceNew: false,
         auth: {
+          userId: this.userId
+        },
+        query: {
           userId: this.userId
         }
       });
