@@ -9,7 +9,7 @@ const initializeSocket = (server) => {
   
   io = new Server(server, {
     cors: {
-      origin: process.env.CLIENT_URL || "http://localhost:5173",
+      origin: "https://project-management-platform-awby.vercel.app" || "http://localhost:5173",
       methods: ["GET", "POST"],
       credentials: true,
       allowedHeaders: ["Content-Type", "Authorization", "Cookie"]

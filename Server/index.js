@@ -11,9 +11,7 @@ const cookieParser = require("cookie-parser");
 const Bug = require('./models/Bug');
 
 // Initialisation d'Express
-app.use(cookieParser());
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
 
 // Configuration CORS unique
 app.use(
@@ -31,7 +29,9 @@ app.use(
 
 // Connexion à MongoDB (appel unique)
 connectDB();
-
+app.use(cookieParser());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 // Importation des routes
 const userRoutes = require("./routes/userRoutes");
 const authRoutes = require("./routes/authRoutes");

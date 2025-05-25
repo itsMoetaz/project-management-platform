@@ -17,8 +17,8 @@ log("Script started")
 
 # Connexion MongoDB
 log("Connecting to MongoDB...")
-client = MongoClient("mongodb://localhost:27017/")
-db = client["ProjectManagement"]  # nom de votre base
+client = MongoClient("mongodb+srv://moetazbenkhedher:47ffYtsEXjONoywR@planify.ry411py.mongodb.net/")
+db = client["planify"]  # nom de votre base
 users_collection = db["users"]  # nom de votre collection utilisateurs
 log("MongoDB connection established")
 

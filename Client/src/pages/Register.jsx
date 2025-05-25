@@ -569,7 +569,7 @@ const Register = () => {
                 transition={{ delay: 1.1 }}
                 className="flex flex-col space-y-3"
               >
-                <a href="http://localhost:3000/api/auth/google">
+                <a href="https://project-management-platform-fgcp.onrender.com/api/auth/google">
                   <motion.button 
                     className="btn glass btn-md gap-2 w-full group border border-white/20 hover:border-white/40" 
                     whileHover={{ scale: 1.02, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)" }}
