@@ -90,7 +90,7 @@ planify/
 └── README.md               # Main documentation
 ```
 
-## 🚀 Getting Started
+## 🚀 Getting Started ********
 
 ### Prerequisites
 - Node.js (v16+)
