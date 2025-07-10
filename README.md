@@ -34,10 +34,7 @@ Planify is a comprehensive full-stack project management platform designed to st
   - Customizable report generation
   - Resource allocation visualization
   
-- **History & Tracking**
-  - Comprehensive activity logs
-  - Time tracking functionality
-  - Audit trails for compliance
+
 
 ## 💻 Technology Stack
 
@@ -45,6 +42,10 @@ Planify is a comprehensive full-stack project management platform designed to st
 - **React.js** - Component-based UI library
 - **Tailwind CSS** - Utility-first CSS framework
 - **Chart.js** - Data visualization
+
+
+
+
 
 ### Backend
 - **Node.js** - JavaScript runtime
@@ -89,7 +90,7 @@ planify/
 └── README.md               # Main documentation
 ```
 
-## 🚀 Getting Started
+## 🚀 Getting Started ********
 
 ### Prerequisites
 - Node.js (v16+)
@@ -158,3 +159,8 @@ docker-compose up --build
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+
+
+
+
+test
